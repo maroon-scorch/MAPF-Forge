@@ -24,6 +24,7 @@ by which the Agent would be operating on
 */
 sig Node {
     edges: set Edge
+    -- perhaps have a set of colors->edges to support colored edges for a colored traversal 
 }
 
 /*
@@ -113,6 +114,14 @@ pred slidable {
 
     -- does slidable => solution is always guaranteed 
     -- (probably not, try limiting number of agents)
+}
+
+pred liveness {
+    -- a trace is "live" if it never reaches a state where no agent can move
+}
+
+pred nsteps[] {
+    -- a trace can be completed in n time intervals.
 }
 
 -- https://link.springer.com/chapter/10.1007/978-3-030-33274-7_6

@@ -60,7 +60,8 @@ go from its start to its destination.
 sig Agent {
     var position: one Node,
     start: one Node,
-    dest: one Node
+    dest: one Node 
+    -- For Traveling Salesman, Consider Changing this into set Node?
 }
 
 pred isConnected {
@@ -83,7 +84,17 @@ pred init {
 
 }
 
+pred move {
 
+}
+
+pred wait {
+
+}
+
+pred stop {
+
+}
 
 /*---------------*\
 |    Properties   |

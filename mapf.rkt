@@ -23,6 +23,7 @@ by which the Agent would be operating on
 --------------------------------------
 */
 sig Node {
+    -- edges: set Node->Int
     edges: set Edge
     -- perhaps have a set of colors->edges to support colored edges for a colored traversal 
 }
@@ -65,6 +66,12 @@ sig Agent {
     -- For Traveling Salesman, Consider Changing this into set Node?
 }
 
+abstract Counter {
+    var count: Int
+}
+
+one stepCount extends Counter
+
 pred isConnected {
     -- The Graph is connected if there exists some node 
     -- such that all other nodes are reachable from it:
@@ -82,19 +89,19 @@ run { isConnected } for exactly 5 Node
 | Agent Operation |
 \*---------------*/
 pred init {
-
+    -- Defines the initial state of the Position.
 }
 
 pred move {
-
+    -- The Agent Chooses an unoccupied node and traverses to it.
 }
 
 pred wait {
-
+    -- The Agent waits for the turn.
 }
 
 pred stop {
-
+    -- The Agent has found its destination and stopped.
 }
 
 /*---------------*\
@@ -125,3 +132,18 @@ pred nsteps[] {
 }
 
 -- https://link.springer.com/chapter/10.1007/978-3-030-33274-7_6
+
+-- Liveness - no deadlock -> could run into a livelock
+-- Optimality issue
+-- on track yayyyyy
+
+
+// time step - NO SMT
+// time step
+// while (timestep < Threshold)
+// we run for this many timesteps, 
+// rozat - racket gives SMT + ability to synthesize programs with better structural
+
+// Stepwise properties
+// stepwise optimality???
+// try to show invariants, etc.

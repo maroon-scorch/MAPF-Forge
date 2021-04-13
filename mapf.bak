@@ -66,11 +66,11 @@ sig Agent {
     -- For Traveling Salesman, Consider Changing this into set Node?
 }
 
-abstract sig Counter {
-     var count: one Int
-}
+// abstract Counter {
+//     var count: Int
+// }
 
-one sig stepCount extends Counter {}
+// one stepCount extends Counter
 
 pred isConnected {
     -- For Undirected Graphs
@@ -91,11 +91,9 @@ pred preConditions {
 \*---------------*/
 pred init {
     -- Defines the initial state of the Position.
-    -- No Agent Should Be Spawned together in the same place
-    position.~position in iden
 }
 
-fun getNeighbors[loc: Node]: set Node {
+fun getNeighbors[loc: Node]: Set Node {
     -- Returns the neighbors of the current node
     loc.edges.to
 }
@@ -103,53 +101,20 @@ fun getNeighbors[loc: Node]: set Node {
 pred move[ag: Agent] {
     -- The Agent Chooses an unoccupied node and traverses to it.
     -- If there are vacant places to move to:
-    let neighbors = getNeighbors[ag.position] |  {
-        let openNode = neighbors - Agent.position | {
-        -- Guard: there's an unoccupied place where the agent can move to
-        some neighbors - Agent.position
-        -- The next position should be in an unoccupied Place
-        ag.position' in openNode
-        -- Specify that only one agent can occupy this place
-        after one ~position.ag
-        }
-    }
 }
 
 pred wait[ag: Agent] {
     -- The Agent waits for the turn.
-    ag.position' = ag.position
 }
 
 pred stop[ag: Agent] {
     -- The Agent has found its destination and stopped.
     -- Guard: The Agent has reached its destination
     ag.position = ag.dest
-    ag.position' = ag.position
-}
-
-pred traces {
-    preConditions
-	init
-	-- Something is always happening
-    always {all agt: Agent | move[agt] or wait[agt] or stop[agt]}
 }
 
 
-
--- "Sanity checking":
-test expect {
-  -- Unsat Traces makes test vacuously true
-  vacuityTest: {traces} is sat
-
-  -- Can each State be Reached by Traces
-  canMove: {traces and (some agt: Agent | eventually (move[agt]))} is sat
-  canWait: {traces and (some agt: Agent | eventually (wait[agt]))} is sat
-  canStop: {traces and (some agt: Agent | eventually (stop[agt]))} is sat
-
-  hasSolution: {traces and (all agt: Agent | eventually (stop[agt]))} is sat
-}
-
-run { traces } for exactly 5 Node
+run { isConnected } for exactly 5 Node
 
 /*---------------*\
 |    Properties   |
@@ -174,7 +139,7 @@ pred liveness {
     -- a trace is "live" if it never reaches a state where no agent can move
 }
 
-pred nsteps[num: Index] {
+pred nsteps[] {
     -- a trace can be completed in n time intervals.
 }
 

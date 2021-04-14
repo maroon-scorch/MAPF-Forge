@@ -47,6 +47,7 @@ sig Edge {
     to: one Node
 }
 
+
 /*
 --------------------------------------
 Agent:
@@ -81,6 +82,20 @@ pred isConnected {
     -- The Graph is connected if there exists some node 
     -- such that all other nodes are reachable from it:
     some reachNode : Node | Node = reachNode + reachNode.^(edges.to)
+}
+
+example icTest1 is { isConnected } for {
+    Node = Atom0 + Atom1 + Atom2 + Atom3 + Atom4
+    Edge = Edge01 + Edge12 + Edge13 + Edge34
+    edges = Atom0->Edge01 + Atom1->Edge12 + Atom1->Edge13 + Atom3->Edge34
+    to = Edge01->Atom1 + Edge12->Atom2 + Edge13->Atom3 + Edge34->Atom4
+}
+
+example icTest2 is { not isConnected } for {
+    Node = Atom0 + Atom1 + Atom2 + Atom3 + Atom4
+    Edge = Edge01 + Edge12 + Edge34
+    edges = Atom0->Edge01 + Atom1->Edge12 + Atom3->Edge34
+    to = Edge01->Atom1 + Edge12->Atom2 + Edge34->Atom4
 }
 
 pred preConditions {
@@ -156,6 +171,59 @@ test expect {
 
   hasSolution: {traces and (all agt: Agent | eventually (stop[agt]))} is sat
 }
+
+sig Path {
+    pth: set PathElt
+}
+
+sig PathElt {
+    loc: one Node,
+    next: lone PathElt
+}
+
+pred pathSetup {
+    PathElt in Path.pth
+    no (next.^next & iden)
+}
+
+pred pathIsList[p: Path] {
+    // Transition Should Be Connected
+    all pElt : p.pth | {
+        pElt.next.loc != pElt.loc
+        pElt.next.loc in getNeighbors[pElt.loc]
+    }
+
+    some start : p.pth | {
+        p.pth in start + start.^next
+    }
+    -- no (edges.^edges & iden)
+    -- *(next + ~next) = *(State->State)
+}
+
+
+example validPath is { pathSetup and pathIsList[Path] } for {
+    -- Setup Structure
+    Node = Node0 + Node1 + Node2 + Node3 + Node4
+    Edge = Edge01 + Edge12 + Edge13 + Edge24
+    edges = Node0->Edge01 + Node1->Edge12 + Node1->Edge13 + Node2->Edge24
+    to = Edge01->Node1 + Edge12->Node2 + Edge13->Node3 + Edge24->Node4
+    -- Path:
+    Path = Path0
+    PathElt = Pet1 + Pet2 --+ Pet3
+    pth = Path0->Pet1 + Path0->Pet2 -- + Path0->Pet3
+    next = Pet1->Pet2 -- + Pet2->Pet3
+    loc = Pet1->Node0 + Pet2->Node1 -- + Pet3->Node4 
+}
+
+run {
+    some Path
+    pathSetup
+    pathIsList[Path]
+} for exactly 1 Path, exactly 3 PathElt
+
+// test expect {
+//        pathIsValid: { pathIsList[Path] } for validPath is sat
+// }
 
 //run { traces } for exactly 5 Node
 

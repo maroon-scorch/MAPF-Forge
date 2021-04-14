@@ -57,13 +57,16 @@ go from its start to its destination.
 @position - The current position the Agent is pointing to
 @start - The starting node of the Agent
 @dest - The ending node of the Agent
+@stops - keeps track of the nodes the Agent has traveled
+@cumulative-weight - keeps track of the weight of the path
 --------------------------------------
 */
 sig Agent {
     var position: one Node,
     start: one Node,
-    dest: one Node 
-    -- For Traveling Salesman, Consider Changing this into set Node?
+    dest: one Node, -- For Traveling Salesman, Consider Changing this into set Node?
+    var stops: set Node,
+    cumulativeWeight: one Int
 }
 
 abstract sig Counter {
@@ -83,6 +86,7 @@ pred isConnected {
 pred preConditions {
     isConnected
     #Node >= #Agent -- this line will probably spawn disasters
+    dest.~dest in iden -- Agents shouldn't have the same destination
 }
 
 
@@ -111,6 +115,8 @@ pred move[ag: Agent] {
         ag.position' in openNode
         -- Specify that only one agent can occupy this place
         after one ~position.ag
+        -- Add the new location into the stops
+        ag.stops' = ag.stops + ag.position'
         }
     }
 }
@@ -118,6 +124,7 @@ pred move[ag: Agent] {
 pred wait[ag: Agent] {
     -- The Agent waits for the turn.
     ag.position' = ag.position
+    ag.stops' = ag.stops
 }
 
 pred stop[ag: Agent] {
@@ -125,6 +132,7 @@ pred stop[ag: Agent] {
     -- Guard: The Agent has reached its destination
     ag.position = ag.dest
     ag.position' = ag.position
+    ag.stops' = ag.stops
 }
 
 pred traces {
@@ -149,7 +157,7 @@ test expect {
   hasSolution: {traces and (all agt: Agent | eventually (stop[agt]))} is sat
 }
 
-run { traces } for exactly 5 Node
+//run { traces } for exactly 5 Node
 
 /*---------------*\
 |    Properties   |
@@ -158,8 +166,18 @@ pred wellFormed {
     -- The graph is "well-formed" for MAPF if for all agent 1, 2,
     -- there's a path from start of 1 to end of 1 that does not
     -- need to pass through the start of 2 and end of 2.
-
+    {all agt1, agt2: Agent | {
+        (agt1 != agt2) => {
+            (agt1.position = agt1.dest) => {
+            agt2.start not in agt1.stops
+            agt2.dest not in agt1.stops
+        }}
+    }}
     -- does wellFormed => solution is always guaranteed
+}
+
+test expect {
+    wellFormedImpliesSolution: {traces and wellFormed implies (all agt: Agent | eventually (stop[agt]))} is theorem
 }
 
 pred slidable {

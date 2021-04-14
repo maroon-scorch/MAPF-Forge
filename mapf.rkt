@@ -164,11 +164,21 @@ pred wait[ag: Agent] {
 //     ag.stops' = ag.stops
 // }
 
+
+pred noCollision {
+    always {
+        all agt1, agt2 : Agent | {
+            agt1 != agt2 => agt1.position != agt2.position 
+        }
+    }
+}
+
 pred traces {
     preConditions
 	init
 	-- Something is always happening
     always {all agt: Agent | move[agt] or wait[agt]}
+    noCollision
    --  always {all agt: Agent | move[agt] or wait[agt] or stop[agt]}
 }
 
@@ -313,17 +323,24 @@ pred incentivePathFinder {
 	}
 }
 
-pred noCollision {
-    always {
-        all agt1, agt2 : Agent | {
-            agt1 != agt2 => agt1.position != agt2.position 
+test expect {
+    ipfFindsPath: { incentivePathFinder implies solved } for exactly 1 Agent is theorem
+    ipfFindsPath2: { incentivePathFinder implies not solved } for exactly 2 Agent is sat
+}
+
+pred betterPathFinder {
+	traces
+	always {
+        all agt : Agent | {
+            move[agt] until agt.position = agt.dest
         }
-    }
+	}
 }
 
 test expect {
-    ipfFindsPath: { incentivePathFinder implies solved and noCollision } for exactly 1 Agent is theorem
-    ipfFindsPath2: { incentivePathFinder implies not (solved and noCollision) } for exactly 2 Agent is sat
+    bpfFindsPath1: { betterPathFinder implies solved } for exactly 2 Agent is theorem
+    bpfFindsPath2: { wellFormed and betterPathFinder implies solved } for exactly 2 Agent is theorem
+    bpfFindsPath3: { wellFormed and betterPathFinder implies solved } for 4 Agent, 6 Node is theorem
 }
 
 // check {

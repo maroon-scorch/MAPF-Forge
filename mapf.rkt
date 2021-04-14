@@ -70,11 +70,11 @@ sig Agent {
     cumulativeWeight: one Int
 }
 
-abstract sig Counter {
-     var count: one Int
-}
+// abstract sig Counter {
+//      var count: one Int
+// }
 
-one sig stepCount extends Counter {}
+// one sig stepCount extends Counter {}
 
 pred isConnected {
     -- For Undirected Graphs
@@ -101,6 +101,7 @@ example icTest2 is { not isConnected } for {
 pred preConditions {
     isConnected
     #Node >= #Agent -- this line will probably spawn disasters
+    start.~start in iden -- Agents shouldn't have the same start
     dest.~dest in iden -- Agents shouldn't have the same destination
 }
 
@@ -110,8 +111,8 @@ pred preConditions {
 \*---------------*/
 pred init {
     -- Defines the initial state of the Position.
-    -- No Agent Should Be Spawned together in the same place
-    position.~position in iden
+    -- Agents Should Be Spawned At Their Start
+    all agt : Agent | agt.position = agt.start
 }
 
 fun getNeighbors[loc: Node]: set Node {
@@ -137,24 +138,28 @@ pred move[ag: Agent] {
 }
 
 pred wait[ag: Agent] {
+
     -- The Agent waits for the turn.
+    -- Guard: Waiting at the destination is just stopping
+    -- ag.position != ag.dest
     ag.position' = ag.position
     ag.stops' = ag.stops
 }
 
-pred stop[ag: Agent] {
-    -- The Agent has found its destination and stopped.
-    -- Guard: The Agent has reached its destination
-    ag.position = ag.dest
-    ag.position' = ag.position
-    ag.stops' = ag.stops
-}
+// pred stop[ag: Agent] {
+//     -- The Agent has found its destination and stopped.
+//     -- Guard: The Agent has reached its destination
+//     ag.position = ag.dest
+//     ag.position' = ag.position
+//     ag.stops' = ag.stops
+// }
 
 pred traces {
     preConditions
 	init
 	-- Something is always happening
-    always {all agt: Agent | move[agt] or wait[agt] or stop[agt]}
+    always {all agt: Agent | move[agt] or wait[agt]}
+   --  always {all agt: Agent | move[agt] or wait[agt] or stop[agt]}
 }
 
 
@@ -167,9 +172,9 @@ test expect {
   -- Can each State be Reached by Traces
   canMove: {traces and (some agt: Agent | eventually (move[agt]))} is sat
   canWait: {traces and (some agt: Agent | eventually (wait[agt]))} is sat
-  canStop: {traces and (some agt: Agent | eventually (stop[agt]))} is sat
+  -- canStop: {traces and (some agt: Agent | eventually (stop[agt]))} is sat
 
-  hasSolution: {traces and (all agt: Agent | eventually (stop[agt]))} is sat
+  -- hasSolution: {traces and (all agt: Agent | eventually (stop[agt]))} is sat
 }
 
 sig Path {
@@ -184,6 +189,8 @@ sig PathElt {
 pred pathSetup {
     PathElt in Path.pth
     no (next.^next & iden)
+    // Next Should Only Have One Unique Parent Each
+    next.~next in iden
 }
 
 pred pathIsList[p: Path] {
@@ -215,11 +222,11 @@ example validPath is { pathSetup and pathIsList[Path] } for {
     loc = Pet1->Node0 + Pet2->Node1 -- + Pet3->Node4 
 }
 
-run {
-    some Path
-    pathSetup
-    pathIsList[Path]
-} for exactly 1 Path, exactly 3 PathElt
+// run {
+//     some Path
+//     pathSetup
+//     pathIsList[Path]
+// } for exactly 1 Path, exactly 3 PathElt
 
 // test expect {
 //        pathIsValid: { pathIsList[Path] } for validPath is sat
@@ -234,19 +241,39 @@ pred wellFormed {
     -- The graph is "well-formed" for MAPF if for all agent 1, 2,
     -- there's a path from start of 1 to end of 1 that does not
     -- need to pass through the start of 2 and end of 2.
-    {all agt1, agt2: Agent | {
-        (agt1 != agt2) => {
-            (agt1.position = agt1.dest) => {
-            agt2.start not in agt1.stops
-            agt2.dest not in agt1.stops
+    // {all agt1, agt2: Agent | {
+    //     (agt1 != agt2) => {
+    //         (agt1.position = agt1.dest) => {
+    //         agt2.start not in agt1.stops
+    //         agt2.dest not in agt1.stops
+    //     }}
+    // }}
+    pathSetup
+    all agt1, agt2: Agent | {
+        (agt1 != agt2) => { some connectPath : Path | {
+            pathIsList[connectPath]
+            agt1.start + agt1.dest in connectPath.pth.loc
+            agt2.start + agt2.dest not in connectPath.pth.loc
         }}
-    }}
+    }
+
     -- does wellFormed => solution is always guaranteed
 }
 
-test expect {
-    wellFormedImpliesSolution: {traces and wellFormed implies (all agt: Agent | eventually (stop[agt]))} is theorem
-}
+
+check {
+    traces and wellFormed implies (all agt: Agent | eventually (agt.position = agt.dest))
+} for exactly one Agent
+
+// run { 
+//     traces
+//     some Agent
+//     all agt : Agent | agt.start != agt.dest
+//     }
+
+// test expect {
+//     wellFormedImpliesSolution: {traces and wellFormed implies (all agt: Agent | eventually (stop[agt]))} is theorem
+// }
 
 pred slidable {
     -- The graph is "slidable" if for all node 1, 2, 3, there exists

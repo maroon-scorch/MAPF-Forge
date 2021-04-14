@@ -84,6 +84,15 @@ pred isConnected {
     some reachNode : Node | Node = reachNode + reachNode.^(edges.to)
 }
 
+pred isUndirected {
+    all n : Node | all neighbor : n.edges.to | {
+        n in neighbor.edges.to
+    }
+}
+
+pred reachable[start: Node, end: Node] {
+}
+
 example icTest1 is { isConnected } for {
     Node = Atom0 + Atom1 + Atom2 + Atom3 + Atom4
     Edge = Edge01 + Edge12 + Edge13 + Edge34
@@ -100,6 +109,7 @@ example icTest2 is { not isConnected } for {
 
 pred preConditions {
     isConnected
+    isUndirected
     #Node >= #Agent -- this line will probably spawn disasters
     start.~start in iden -- Agents shouldn't have the same start
     dest.~dest in iden -- Agents shouldn't have the same destination
@@ -162,7 +172,9 @@ pred traces {
    --  always {all agt: Agent | move[agt] or wait[agt] or stop[agt]}
 }
 
-
+pred solved {
+    all agt: Agent | eventually (agt.position = agt.dest)
+}
 
 -- "Sanity checking":
 test expect {
@@ -174,7 +186,7 @@ test expect {
   canWait: {traces and (some agt: Agent | eventually (wait[agt]))} is sat
   -- canStop: {traces and (some agt: Agent | eventually (stop[agt]))} is sat
 
-  -- hasSolution: {traces and (all agt: Agent | eventually (stop[agt]))} is sat
+  hasSolution: {traces and solved} is sat
 }
 
 sig Path {
@@ -228,10 +240,6 @@ example validPath is { pathSetup and pathIsList[Path] } for {
 //     pathIsList[Path]
 // } for exactly 1 Path, exactly 3 PathElt
 
-// test expect {
-//        pathIsValid: { pathIsList[Path] } for validPath is sat
-// }
-
 //run { traces } for exactly 5 Node
 
 /*---------------*\
@@ -260,10 +268,40 @@ pred wellFormed {
     -- does wellFormed => solution is always guaranteed
 }
 
+/*-----------------------*\
+|     Path Procedures     |
+\*-----------------------*/
+
+/*
+// This is going to fail because the Agent has no incentives
+// to go the destination, so it can just wait forever at the same spot.
+check {
+    traces implies solved
+} for exactly one Agent
+*/
+
+pred naivePathFinder {
+	traces
+	always {
+        all agt : Agent | {
+            not wait[agt]
+        }
+	}
+}
 
 check {
-    traces and wellFormed implies (all agt: Agent | eventually (agt.position = agt.dest))
+    naivePathFinder implies solved
 } for exactly one Agent
+
+test expect {
+    oneAgentAlwaysReachDest: {
+        traces implies solved
+    } for exactly one Agent is theorem
+}
+
+// check {
+//     traces and wellFormed implies solved
+// } for exactly one Agent
 
 // run { 
 //     traces

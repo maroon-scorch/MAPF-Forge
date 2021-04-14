@@ -280,6 +280,11 @@ check {
 } for exactly one Agent
 */
 
+test expect {
+   tracesSometimesSolve: { traces implies solved } is sat
+   tracesSometimesUnsolve: { traces implies not solved } is sat
+}
+
 pred naivePathFinder {
 	traces
 	always {
@@ -289,14 +294,36 @@ pred naivePathFinder {
 	}
 }
 
-check {
-    naivePathFinder implies solved
-} for exactly one Agent
+// check {
+//     naivePathFinder implies solved
+// } for exactly one Agent
+
+// test expect {
+//     oneAgentAlwaysReachDest: {
+//         traces implies solved
+//     } for exactly one Agent is theorem
+// }
+
+pred incentivePathFinder {
+	traces
+	always {
+        all agt : Agent | {
+            move[agt] until agt.position = agt.dest
+        }
+	}
+}
+
+pred noCollision {
+    always {
+        all agt1, agt2 : Agent | {
+            agt1 != agt2 => agt1.position != agt2.position 
+        }
+    }
+}
 
 test expect {
-    oneAgentAlwaysReachDest: {
-        traces implies solved
-    } for exactly one Agent is theorem
+    ipfFindsPath: { incentivePathFinder implies solved and noCollision } for exactly 1 Agent is theorem
+    ipfFindsPath2: { incentivePathFinder implies not (solved and noCollision) } for exactly 2 Agent is sat
 }
 
 // check {

@@ -1,0 +1,1 @@
+("8.0" ta6nt ("c62051e9daa67b6b90b35abdc5ec9f03f7c0db9d" . "1b19ec4f306aa305c7466afb887001b419f28221") (collects #"errortrace" #"errortrace-key.rkt") (collects #"forge" #"lang" #"expander.rkt") (collects #"forge" #"logging" #"logging.rkt") (collects #"forge" #"main.rkt") (collects #"racket" #"runtime-config.rkt"))

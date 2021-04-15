@@ -277,6 +277,7 @@ test expect {
     waitingExampleTest: { traces and solved } for waitingExample is sat
 }
 
+// Simple Example for Solver
 inst structure {
     Node = Node0 + Node1 + Node2
     Edge = Edge01 + Edge12

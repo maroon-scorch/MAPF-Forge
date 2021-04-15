@@ -269,9 +269,21 @@ inst waitingExample {
     dest = AgentA->Node0 + AgentB->Node1 + AgentC->Node2
 }
 
+inst collideExample2 {
+    Node = Node1 + Node2 + Node3
+    Edge = Edge12 + Edge21 + Edge23 + Edge32
+    edges = Node1->Edge12 + Node2->Edge21 + Node2->Edge23 + Node3->Edge32
+    to = Edge12->Node2 + Edge21->Node1 + Edge23->Node3 + Edge32->Node2
+
+    Agent = AgentA + AgentB
+    start = AgentA->Node2 + AgentB->Node3
+    dest = AgentA->Node3 + AgentB->Node1
+}
+
 test expect {
     oneAgentTest: { traces and solved } for oneAgent is sat
     collideTest: { traces and solved } for collide is unsat
+    collideTest2: { traces and solved } for collideExample2 is unsat
     notCollideTest: { traces and solved } for notCollide is sat
     discreteMapTest: { traces and solved } for discreteMap is sat
     waitingExampleTest: { traces and solved } for waitingExample is sat
@@ -289,9 +301,9 @@ inst structure {
     dest = Agent0->Node2
 }
 
-run { traces and solved } for {
-    structure
-}
+// run { traces and solved } for {
+//     structure
+// }
 
 sig Path {
     pth: set PathElt
@@ -373,6 +385,29 @@ pred wellFormed {
     -- does wellFormed => solution is always guaranteed
 }
 
+
+test expect {
+    wellFormedPositive: { wellFormed } for discreteMap is sat
+    wellFormedNegative: { wellFormed } for waitingExample is unsat
+    wfPathIncludeStartEnd: { wellFormed } for notCollide is unsat
+}
+
+pred wellFormedTraces {
+    preConditions
+	init
+	-- Something is always happening
+    always {all agt: Agent | move[agt] or wait[agt]}
+    noCollision
+    wellFormed
+}
+
+// run { wellFormed } for exactly 1 Agent, exactly 3 Node
+
+// test expect {
+//     wellFormedVacuityTest: { wellFormed } is sat
+//     wellFormedTest: { wellFormed and traces implies solved } is theorem
+// }
+
 /*-----------------------*\
 |     Path Procedures     |
 \*-----------------------*/
@@ -387,7 +422,7 @@ check {
 
 test expect {
    tracesSometimesSolve: { traces implies solved } is sat
-   tracesSometimesUnsolve: { traces implies not solved } is sat
+   tracesSometimesUnsolve: { not (traces implies solved) } is sat
 }
 
 pred naivePathFinder {
@@ -409,7 +444,7 @@ pred naivePathFinder {
 //     } for exactly one Agent is theorem
 // }
 
-pred incentivePathFinder {
+pred nwfPathFinder {
 	traces
 	always {
         all agt : Agent | {
@@ -418,12 +453,41 @@ pred incentivePathFinder {
 	}
 }
 
+pred incentivePathFinder {
+	wellFormedTraces
+	always {
+        all agt : Agent | {
+            move[agt] until agt.position = agt.dest
+        }
+	}
+}
+
+// run { incentivePathFinder } for {
+//     structure
+// }
+
+run { wellFormed } for {
+    structure
+}
+
+run { incentivePathFinder } for {
+    waitingExample
+}
+
+
+// test expect {
+//     ipfImpliesNotWaiting: { incentivePathFinder implies always { all agt : Agent | {
+//             not wait[agt] until agt.position = agt.dest
+//         }}} is theorem
+// }
+
 test expect {
     ipfVacuity: { incentivePathFinder } is sat
-    ipfFindsPath: { incentivePathFinder implies solved } for exactly 1 Agent is theorem
-    ipfFindsPath2: { incentivePathFinder implies not solved } for exactly 2 Agent is sat
-    ipfFindsPath3: { not (incentivePathFinder implies solved) } for exactly 2 Agent is sat
-    ipfFindsPath4: { incentivePathFinder implies solved } for exactly 2 Agent is theorem
+    nwfFindsPath: { nwfPathFinder implies solved } is theorem
+    ipfFindsPath: { incentivePathFinder implies solved } is theorem
+    -- ipfFindsPath2: { incentivePathFinder implies not solved } for exactly 2 Agent is sat
+    -- ipfFindsPath3: { not (incentivePathFinder implies solved) } for exactly 2 Agent is sat
+    -- ipfFindsPath4: { incentivePathFinder implies solved } for exactly 2 Agent is theorem
     -- ipfFindsPath5: { incentivePathFinder implies not solved } for exactly 2 Agent is theorem
 }
 
@@ -443,11 +507,11 @@ pred betterPathFinder {
 	}
 }
 
-test expect {
-    bpfFindsPath1: { betterPathFinder implies solved } for exactly 2 Agent is theorem
-    bpfFindsPath2: { wellFormed and betterPathFinder implies solved } for exactly 2 Agent is theorem
-    bpfFindsPath3: { wellFormed and betterPathFinder implies solved } for 4 Agent, 6 Node is theorem
-}
+// test expect {
+//     bpfFindsPath1: { betterPathFinder implies solved } for exactly 2 Agent is theorem
+//     bpfFindsPath2: { wellFormed and betterPathFinder implies solved } for exactly 2 Agent is theorem
+//     bpfFindsPath3: { wellFormed and betterPathFinder implies solved } for 4 Agent, 6 Node is theorem
+// }
 
 // check {
 //     traces and wellFormed implies solved

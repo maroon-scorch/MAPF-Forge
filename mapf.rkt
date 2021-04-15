@@ -324,10 +324,21 @@ pred incentivePathFinder {
 }
 
 test expect {
+    ipfVacuity: { incentivePathFinder } is sat
     ipfFindsPath: { incentivePathFinder implies solved } for exactly 1 Agent is theorem
     ipfFindsPath2: { incentivePathFinder implies not solved } for exactly 2 Agent is sat
+    ipfFindsPath3: { not (incentivePathFinder implies solved) } for exactly 2 Agent is sat
+    ipfFindsPath4: { incentivePathFinder implies solved } for exactly 2 Agent is theorem
+    -- ipfFindsPath5: { incentivePathFinder implies not solved } for exactly 2 Agent is theorem
 }
 
+test expect {
+    ipfFindsPathHUHHHHH: { not (incentivePathFinder implies solved) } for exactly 2 Agent is theorem
+}
+
+
+-- pathfinder is like algorithm???
+-- structure in traces is like the structure the algorithm operates on
 pred betterPathFinder {
 	traces
 	always {

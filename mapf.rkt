@@ -90,8 +90,7 @@ pred isUndirected {
     }
 }
 
-pred reachable[start: Node, end: Node] {
-}
+
 
 example icTest1 is { isConnected } for {
     Node = Atom0 + Atom1 + Atom2 + Atom3 + Atom4
@@ -107,10 +106,15 @@ example icTest2 is { not isConnected } for {
     to = Edge01->Atom1 + Edge12->Atom2 + Edge34->Atom4
 }
 
+pred reachable[start: Node, end: Node] {
+    end in start + start.^(edges.to)
+}
+
 pred preConditions {
-    isConnected
-    isUndirected
-    #Node >= #Agent -- this line will probably spawn disasters
+    -- isConnected
+    -- isUndirected
+    all agt : Agent | reachable[agt.start, agt.dest]
+    -- #Node >= #Agent -- this line will probably spawn disasters (but not needed)
     start.~start in iden -- Agents shouldn't have the same start
     dest.~dest in iden -- Agents shouldn't have the same destination
 }
@@ -197,6 +201,21 @@ test expect {
   -- canStop: {traces and (some agt: Agent | eventually (stop[agt]))} is sat
 
   hasSolution: {traces and solved} is sat
+}
+
+inst structure {
+    Node = Node0 + Node1 + Node2
+    Edge = Edge01 + Edge12
+    edges = Node0->Edge01 + Node1->Edge12
+    to = Edge01->Node1 + Edge12->Node2
+
+    Agent = Agent0
+    start = Agent0->Node0
+    dest = Agent0->Node2
+}
+
+run { traces and solved } for {
+    structure
 }
 
 sig Path {

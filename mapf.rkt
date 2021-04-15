@@ -172,7 +172,10 @@ pred wait[ag: Agent] {
 pred noCollision {
     always {
         all agt1, agt2 : Agent | {
-            agt1 != agt2 => agt1.position != agt2.position 
+            agt1 != agt2 => {
+                agt1.position != agt2.position
+                not (agt1.position' = agt2.position and agt2.position' = agt1.position)
+            }
         }
     }
 }
@@ -182,6 +185,12 @@ pred traces {
 	init
 	-- Something is always happening
     always {all agt: Agent | move[agt] or wait[agt]}
+    // always { one moveAgt : Agent | {
+    //     move[moveAgt]
+    //     all restAgt : Agent - moveAgt | {
+    //         wait[restAgt]
+    //     }
+    // }}
     noCollision
    --  always {all agt: Agent | move[agt] or wait[agt] or stop[agt]}
 }
@@ -201,6 +210,71 @@ test expect {
   -- canStop: {traces and (some agt: Agent | eventually (stop[agt]))} is sat
 
   hasSolution: {traces and solved} is sat
+}
+
+inst oneAgent {
+    Node = Node0 + Node1 + Node2
+    Edge = Edge01 + Edge12
+    edges = Node0->Edge01 + Node1->Edge12
+    to = Edge01->Node1 + Edge12->Node2
+
+    Agent = Agent0
+    start = Agent0->Node0
+    dest = Agent0->Node2
+}
+
+inst collide {
+    Node = Node0 + Node1
+    Edge = Edge01 + Edge10
+    edges = Node0->Edge01 + Node1->Edge10
+    to = Edge01->Node1 + Edge10->Node0
+
+    Agent = Agent0 + Agent1
+    start = Agent0->Node0 + Agent1->Node1
+    dest = Agent0->Node1 + Agent1->Node0
+}
+
+inst notCollide {
+    Node = Node0 + Node1 + Node2
+    Edge = Edge01 + Edge10 + Edge12 + Edge20
+    edges = Node0->Edge01 + Node1->Edge10 + Node1->Edge12 + Node2->Edge20
+    to = Edge01->Node1 + Edge10->Node0 + Edge12->Node2 + Edge20->Node0
+
+    Agent = Agent0 + Agent1
+    start = Agent0->Node0 + Agent1->Node1
+    dest = Agent0->Node1 + Agent1->Node0
+}
+
+inst discreteMap {
+    Node = Node0 + Node1 + Node2 + Node3
+    Edge = Edge01 + Edge23
+    edges = Node0->Edge01 + Node2->Edge23
+    to = Edge01->Node1 + Edge23->Node3
+
+    Agent = Agent0 + Agent1
+    start = Agent0->Node0 + Agent1->Node2
+    dest = Agent0->Node1 + Agent1->Node3
+}
+
+inst waitingExample {
+    Node = NodeA + NodeB + NodeC + Node0 + Node1 + Node2
+    Edge = EdgeA0 + EdgeB0 + EdgeC0 + Edge01 + Edge02
+    edges = NodeA->EdgeA0 + NodeB->EdgeB0 + NodeC->EdgeC0 +
+    Node0->Edge01 + Node0->Edge02
+    to = EdgeA0->Node0 + EdgeB0->Node0 + EdgeC0->Node0 +
+    Edge01->Node1 + Edge02->Node2
+
+    Agent = AgentA + AgentB + AgentC
+    start = AgentA->NodeA + AgentB->NodeB + AgentC->NodeC
+    dest = AgentA->Node0 + AgentB->Node1 + AgentC->Node2
+}
+
+test expect {
+    oneAgentTest: { traces and solved } for oneAgent is sat
+    collideTest: { traces and solved } for collide is unsat
+    notCollideTest: { traces and solved } for notCollide is sat
+    discreteMapTest: { traces and solved } for discreteMap is sat
+    waitingExampleTest: { traces and solved } for waitingExample is sat
 }
 
 inst structure {
@@ -285,6 +359,7 @@ pred wellFormed {
     //         agt2.dest not in agt1.stops
     //     }}
     // }}
+    
     pathSetup
     all agt1, agt2: Agent | {
         (agt1 != agt2) => { some connectPath : Path | {

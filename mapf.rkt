@@ -365,13 +365,6 @@ pred wellFormed {
     -- The graph is "well-formed" for MAPF if for all agent 1, 2,
     -- there's a path from start of 1 to end of 1 that does not
     -- need to pass through the start of 2 and end of 2.
-    // {all agt1, agt2: Agent | {
-    //     (agt1 != agt2) => {
-    //         (agt1.position = agt1.dest) => {
-    //         agt2.start not in agt1.stops
-    //         agt2.dest not in agt1.stops
-    //     }}
-    // }}
     
     pathSetup
     all agt1, agt2: Agent | {
@@ -530,6 +523,16 @@ pred betterPathFinder {
 pred slidable {
     -- The graph is "slidable" if for all node 1, 2, 3, there exists
     -- a path from 1 to 3 without passing through 2.
+
+    pathSetup
+    all node1, node2, node3: Node | {
+        (node1 != node2 and node2 != node3 and node1 != node3) =>
+        { some connectPath : Path | {
+            pathIsList[connectPath]
+            node1 + node2 in connectPath.pth.loc
+            node3 not in connectPath.pth.loc
+        }}
+    }
 
     -- does slidable => solution is always guaranteed 
     -- (probably not, try limiting number of agents)

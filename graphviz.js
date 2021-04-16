@@ -88,6 +88,19 @@ svg = d3.select(svg)
     
     console.log("dataset is ...",dataset);
 
+   svg.append("svg:defs").selectAll("marker")
+    .data(["end"])      // Different link/path types can be defined here
+  .enter().append("svg:marker")    // This section adds in the arrows
+    .attr("id", String)
+    .attr("viewBox", "0 -5 10 10")
+    .attr("refX", 15)
+    .attr("refY", -1.5)
+    .attr("markerWidth", 2)
+    .attr("markerHeight", 2)
+    .attr("orient", "auto")
+  .append("svg:path")
+    .attr("d", "M0,-5L10,0L0,5");
+
      // Initialize the links
     const link = svg.append("g")
         .attr("class", "link")
@@ -96,7 +109,8 @@ svg = d3.select(svg)
         .enter().append("line")
         .attr("fill", "black")
         .attr("stroke", "black")
-        .attr('stroke-width', 2);
+        .attr('stroke-width', 2)
+        .attr("marker-end", "url(#end)");
 
     // Initialize the nodes
     const node = svg.append("g")
@@ -120,6 +134,8 @@ svg = d3.select(svg)
         .enter().append("text")
         .attr("fill", "block")
         .text(d => d.id);
+
+
               
     var simulation = d3.forceSimulation(dataset.nodes)
     .force('charge', d3.forceManyBody())

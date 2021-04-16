@@ -385,6 +385,7 @@ test expect {
     wfPathIncludeStartEnd: { wellFormed } for notCollide is unsat
 }
 
+
 pred wellFormedTraces {
     preConditions
 	init
@@ -393,6 +394,9 @@ pred wellFormedTraces {
     noCollision
     wellFormed
 }
+
+
+
 
 // run { wellFormed } for exactly 1 Agent, exactly 3 Node
 
@@ -437,6 +441,7 @@ pred naivePathFinder {
 //     } for exactly one Agent is theorem
 // }
 
+-- Best Guess: using until constrains the shape of the graph to also be able to accomplish until
 pred nwfPathFinder {
 	traces
 	always {
@@ -454,6 +459,56 @@ pred incentivePathFinder {
         }
 	}
 }
+
+pred waitFinder {
+	traces
+	always {
+        all agt : Agent | {
+            wait[agt]
+        }
+	}
+}
+
+
+test expect {
+    {{ nwfPathFinder => solved } <=> { incentivePathFinder => solved }} is theorem
+    wellFormedSolution: { not (traces and solved) => not wellFormed  } is theorem
+}
+
+// check {
+//     always {
+//         all agt : Agent | {
+//             move[agt] until agt.position = agt.dest
+//         }
+// 	} implies {
+//         all agt : Agent | {
+//             reachable[agt.position, agt.dest]
+//         }
+//     }
+// }
+
+
+test expect {
+    { wellFormedTraces implies solvable } is theorem
+} 
+
+// run { traces } for {
+//     collide
+// }
+
+// run {nwfPathFinder and not solved} -- unsat
+
+// run {nwfPathFinder implies solved} for {
+//     collide
+// }
+
+pred solvable[condition: set Agent] {
+
+}
+
+test expect {
+    { nwfPathFinder implies wellFormed } is theorem
+} 
 
 // run { incentivePathFinder } for {
 //     structure

@@ -1,6 +1,27 @@
 d3.select(svg).selectAll("*").remove();
 
 
+function hashCode(str) { // java String#hashCode
+    var hash = 0;
+    for (var i = 0; i < str.length; i++) {
+       hash = str.charCodeAt(i) + ((hash << 5) - hash);
+    }
+    return hash;
+} 
+
+function intToRGB(i){
+    var c = (i & 0x00FFFFFF)
+        .toString(16)
+        .toUpperCase();
+
+    return "00000".substring(0, 6 - c.length) + c;
+}
+
+function agentToColor(i, d){
+  return "#" + intToRGB(101 * (hashCode(i) + d))
+}
+
+
 svg = d3.select(svg)
     .append("g")
     .attr("width", 100)
@@ -94,15 +115,19 @@ svg = d3.select(svg)
     for (var i = 0; i < nodes.length; i++) {
       color = "lightgrey"
       agent = ""
+      outline = "lightgrey"
       
       for (var j = 0; j < position.length; j++){
         if (nodes[i] === position[j]){
-          color = "skyblue"
+          color = agentToColor(agents[j], j*298)
           agent = agents[j]
+        }
+        if (nodes[i] === ending[j]){
+          outline = agentToColor(agents[j], j*298)
         }
       }
       
-      dataset.nodes.push({id: nodes[i], color: color, agent: agent });
+      dataset.nodes.push({id: nodes[i], color: color, agent: agent, outline: outline});
 
     }
 
@@ -139,6 +164,8 @@ svg = d3.select(svg)
         .selectAll("circle")
         .data(dataset.nodes)
         .enter().append("circle")
+        .attr("stroke", function(d){ return d.outline})
+        .attr("stroke-width", 5)
         .attr("fill", function (d) { return d.color; })
         .attr("r", 30)
         .call(d3.drag()  //sets the event listener for the specified typenames and returns the drag behavior.
@@ -157,7 +184,7 @@ svg = d3.select(svg)
         .attr("fill", "block")
         .attr("dx", "0.3em")
         .style("text-anchor", "middle")
-        .style("font-size", "18px")
+        .style("font-size", "17px")
         .text(d => d.id);
     const text2 = text.append("text")
         .attr("fill", "block")
@@ -172,8 +199,14 @@ svg = d3.select(svg)
     var simulation = d3.forceSimulation(dataset.nodes)
     .force('charge', d3.forceManyBody())
     .force('center', d3.forceCenter(width / 2, height / 2))
-    .force("link", d3.forceLink(dataset.links).distance(0).id(function(d){return d.id}))
+    .force("link", d3.forceLink(dataset.links).distance(300).id(function(d){return d.id}))
     .on('tick', ticked);
+
+    simulation.tick(120);
+
+    node.attr("cx", function(d) { return d.x; })
+      .attr("cy", function(d) { return d.y; })
+    ticked()
 
     //Listen for tick events to render the nodes as they update in your Canvas or SVG.
     simulation.force('link').links(link);
@@ -213,22 +246,22 @@ svg = d3.select(svg)
 
     //When the drag gesture starts, the targeted node is fixed to the pointer
     //The simulation is temporarily “heated” during interaction by setting the target alpha to a non-zero value.
-    function dragstarted(d) {
-      //if (!d3.event.active) simulation.alphaTarget(0.3).restart();//sets the current target alpha to the specified number in the range [0,1].
+    function dragstarted(event, d) {
+      if (!event.active) simulation.alphaTarget(0.01).restart();//sets the current target alpha to the specified number in the range [0,1].
       d.fy = d.y; //fx - the node’s fixed x-position. Original is null.
       d.fx = d.x; //fy - the node’s fixed y-position. Original is null.
     }
 
     //When the drag gesture starts, the targeted node is fixed to the pointer
-  function dragged(d) {
-    console.log(d3.event)
-    d.fx = d3.event.x;
-    d.fy = d3.event.y;
+  function dragged(event, d) {
+//     console.log(d.x)
+    d.fx = event.x;
+    d.fy = event.y;
   }
 
     //the targeted node is released when the gesture ends
-    function dragended(d) {
-      //if (!d3.event.active) simulation.alphaTarget(0);
+    function dragended(event, d) {
+      if (!event.active) simulation.alphaTarget(0);
       d.fx = null;
       d.fy = null;
       

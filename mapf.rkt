@@ -70,54 +70,22 @@ sig Agent {
     cumulativeWeight: one Int
 }
 
-// abstract sig Counter {
-//      var count: one Int
-// }
 
-// one sig stepCount extends Counter {}
-
-pred isConnected {
-    -- For Undirected Graphs
-
-    -- The Graph is connected if there exists some node 
-    -- such that all other nodes are reachable from it:
-    some reachNode : Node | Node = reachNode + reachNode.^(edges.to)
-}
-
-pred isUndirected {
-    all n : Node | all neighbor : n.edges.to | {
-        n in neighbor.edges.to
-    }
-}
-
-
-
-example icTest1 is { isConnected } for {
-    Node = Atom0 + Atom1 + Atom2 + Atom3 + Atom4
-    Edge = Edge01 + Edge12 + Edge13 + Edge34
-    edges = Atom0->Edge01 + Atom1->Edge12 + Atom1->Edge13 + Atom3->Edge34
-    to = Edge01->Atom1 + Edge12->Atom2 + Edge13->Atom3 + Edge34->Atom4
-}
-
-example icTest2 is { not isConnected } for {
-    Node = Atom0 + Atom1 + Atom2 + Atom3 + Atom4
-    Edge = Edge01 + Edge12 + Edge34
-    edges = Atom0->Edge01 + Atom1->Edge12 + Atom3->Edge34
-    to = Edge01->Atom1 + Edge12->Atom2 + Edge34->Atom4
-}
-
+//Checks if end is reachable from start
+--used to make sure dest is reachable from start in agent pathfinding
 pred reachable[start: Node, end: Node] {
     end in start + start.^(edges.to)
 }
+//TODO::Test cases for reachable ~5 tests
 
+//Determines the static parts of our properties before the initial state;
+//Makes sure each agent can reach its destination from its start
 pred preConditions {
-    -- isConnected
-    -- isUndirected
     all agt : Agent | reachable[agt.start, agt.dest]
-    -- #Node >= #Agent -- this line will probably spawn disasters (but not needed)
     start.~start in iden -- Agents shouldn't have the same start
     dest.~dest in iden -- Agents shouldn't have the same destination
 }
+//TODO::Test cases for preConditions
 
 
 /*---------------*\
@@ -128,11 +96,14 @@ pred init {
     -- Agents Should Be Spawned At Their Start
     all agt : Agent | agt.position = agt.start
 }
+//TODO::Test cases for init
+
 
 fun getNeighbors[loc: Node]: set Node {
     -- Returns the neighbors of the current node
     loc.edges.to
 }
+//TODO::Test cases for init
 
 pred move[ag: Agent] {
     -- The Agent Chooses an unoccupied node and traverses to it.
@@ -152,13 +123,15 @@ pred move[ag: Agent] {
 }
 
 pred wait[ag: Agent] {
-
     -- The Agent waits for the turn.
     -- Guard: Waiting at the destination is just stopping
     -- ag.position != ag.dest
     ag.position' = ag.position
     ag.stops' = ag.stops
 }
+
+
+--stop would be used when agent reaches destination, not sure if needed yet--
 
 // pred stop[ag: Agent] {
 //     -- The Agent has found its destination and stopped.
@@ -168,7 +141,7 @@ pred wait[ag: Agent] {
 //     ag.stops' = ag.stops
 // }
 
-
+//Assures that no two agents every collide (swap positions)
 pred noCollision {
     always {
         all agt1, agt2 : Agent | {
@@ -179,22 +152,32 @@ pred noCollision {
         }
     }
 }
-
+--Current traces form that defines states of movement as all agents taking an action per state
 pred traces {
     preConditions
 	init
 	-- Something is always happening
     always {all agt: Agent | move[agt] or wait[agt]}
-    // always { one moveAgt : Agent | {
-    //     move[moveAgt]
-    //     all restAgt : Agent - moveAgt | {
-    //         wait[restAgt]
-    //     }
-    // }}
+    noCollision
+}
+
+/*
+--Other form of traces that defines states of movement as one agent taking an action per state
+pred traces {
+    preConditions
+	init
+    always { one moveAgt : Agent | {
+        move[moveAgt]
+        all restAgt : Agent - moveAgt | {
+            wait[restAgt]
+        }
+    }}
     noCollision
    --  always {all agt: Agent | move[agt] or wait[agt] or stop[agt]}
 }
+*/
 
+--solved is defined as all agents having reached their destinations
 pred solved {
     all agt: Agent | eventually (agt.position = agt.dest)
 }
@@ -212,6 +195,9 @@ test expect {
   hasSolution: {traces and solved} is sat
 }
 
+/*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+                                Traces Test Instances
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
 inst oneAgent {
     Node = Node0 + Node1 + Node2
     Edge = Edge01 + Edge12
@@ -289,22 +275,9 @@ test expect {
     waitingExampleTest: { traces and solved } for waitingExample is sat
 }
 
-// Simple Example for Solver
-inst structure {
-    Node = Node0 + Node1 + Node2
-    Edge = Edge01 + Edge12
-    edges = Node0->Edge01 + Node1->Edge12
-    to = Edge01->Node1 + Edge12->Node2
-
-    Agent = Agent0
-    start = Agent0->Node0
-    dest = Agent0->Node2
-}
-
-// run { traces and solved } for {
-//     structure
-// }
-
+/*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+                        Property Verification
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
 sig Path {
     pth: set PathElt
 }
@@ -314,6 +287,7 @@ sig PathElt {
     next: lone PathElt
 }
 
+//Makes sure that each PathElt in a Path form a list
 pred pathSetup {
     PathElt in Path.pth
     no (next.^next & iden)
@@ -321,6 +295,7 @@ pred pathSetup {
     next.~next in iden
 }
 
+//Makes sure that each PathElt in a Path is pointing to a directly connected Node from itself
 pred pathIsList[p: Path] {
     // Transition Should Be Connected
     all pElt : p.pth | {
@@ -331,10 +306,7 @@ pred pathIsList[p: Path] {
     some start : p.pth | {
         p.pth in start + start.^next
     }
-    -- no (edges.^edges & iden)
-    -- *(next + ~next) = *(State->State)
 }
-
 
 example validPath is { pathSetup and pathIsList[Path] } for {
     -- Setup Structure
@@ -349,14 +321,6 @@ example validPath is { pathSetup and pathIsList[Path] } for {
     next = Pet1->Pet2 -- + Pet2->Pet3
     loc = Pet1->Node0 + Pet2->Node1 -- + Pet3->Node4 
 }
-
-// run {
-//     some Path
-//     pathSetup
-//     pathIsList[Path]
-// } for exactly 1 Path, exactly 3 PathElt
-
-//run { traces } for exactly 5 Node
 
 /*---------------*\
 |    Properties   |
@@ -378,32 +342,34 @@ pred wellFormed {
     -- does wellFormed => solution is always guaranteed
 }
 
-
+//TODO::Create new more wellFormed specific instances/tests
 test expect {
     wellFormedPositive: { wellFormed } for discreteMap is sat
     wellFormedNegative: { wellFormed } for waitingExample is unsat
     wfPathIncludeStartEnd: { wellFormed } for notCollide is unsat
 }
 
+/*
+//Statically checks if a mapf is solvable
+pred solvable[condition: set Agent] {
+    ...
+}
+*/
 
+//Traces but guarantees wellFormed
 pred wellFormedTraces {
-    preConditions
-	init
-	-- Something is always happening
-    always {all agt: Agent | move[agt] or wait[agt]}
-    noCollision
+    traces
     wellFormed
 }
 
+/*
+wellFormedTraces guarantees a solution, but how do you say that solved is sat?
 
-
-
-// run { wellFormed } for exactly 1 Agent, exactly 3 Node
-
-// test expect {
-//     wellFormedVacuityTest: { wellFormed } is sat
-//     wellFormedTest: { wellFormed and traces implies solved } is theorem
-// }
+test expect {
+    wellFormedVacuityTest: { wellFormed } is sat
+    wellFormedTest: { wellFormed and traces implies solved } is theorem
+}
+*/
 
 /*-----------------------*\
 |     Path Procedures     |
@@ -422,6 +388,7 @@ test expect {
    tracesSometimesUnsolve: { not (traces implies solved) } is sat
 }
 
+//Method to naively force agents to take a path
 pred naivePathFinder {
 	traces
 	always {
@@ -431,10 +398,6 @@ pred naivePathFinder {
 	}
 }
 
-// check {
-//     naivePathFinder implies solved
-// } for exactly one Agent
-
 // test expect {
 //     oneAgentAlwaysReachDest: {
 //         traces implies solved
@@ -442,6 +405,11 @@ pred naivePathFinder {
 // }
 
 -- Best Guess: using until constrains the shape of the graph to also be able to accomplish until
+--wellformed
+
+/// These two predicates are experimental. They currently basically say if a graph is solvable, then it is solvable. This makes wellformedness not really matter
+/// Also these predicates force all agents to always move, which just isn't proper
+
 pred nwfPathFinder {
 	traces
 	always {
@@ -451,6 +419,7 @@ pred nwfPathFinder {
 	}
 }
 
+--not well formed
 pred incentivePathFinder {
 	wellFormedTraces
 	always {
@@ -460,75 +429,138 @@ pred incentivePathFinder {
 	}
 }
 
-pred waitFinder {
-	traces
-	always {
-        all agt : Agent | {
-            wait[agt]
-        }
-	}
-}
-
-
 test expect {
     {{ nwfPathFinder => solved } <=> { incentivePathFinder => solved }} is theorem
     wellFormedSolution: { not (traces and solved) => not wellFormed  } is theorem
-}
-
-// check {
-//     always {
-//         all agt : Agent | {
-//             move[agt] until agt.position = agt.dest
-//         }
-// 	} implies {
-//         all agt : Agent | {
-//             reachable[agt.position, agt.dest]
-//         }
-//     }
-// }
-
-
-test expect {
-    { wellFormedTraces implies solvable } is theorem
-} 
-
-// run { traces } for {
-//     collide
-// }
-
-// run {nwfPathFinder and not solved} -- unsat
-
-// run {nwfPathFinder implies solved} for {
-//     collide
-// }
-
-pred solvable[condition: set Agent] {
-
 }
 
 test expect {
     { nwfPathFinder implies wellFormed } is theorem
 } 
 
-// run { incentivePathFinder } for {
+pred slidable {
+    -- The graph is "slidable" if for all node 1, 2, 3, there exists
+    -- a path from 1 to 3 without passing through 2.
+    pathSetup
+    all node1, node2, node3: Node | {
+        (node1 != node2 and node2 != node3 and node1 != node3) =>
+        { some connectPath : Path | {
+            pathIsList[connectPath]
+            node1 + node2 in connectPath.pth.loc
+            node3 not in connectPath.pth.loc
+        }}
+    }
+    -- does slidable => solution is always guaranteed 
+    -- (probably not, try limiting number of agents)
+}
+
+//livelock: Trapped in a cycle but still moving
+//deadlock: Can't move
+
+pred liveness {
+    -- a trace is "live" if it never reaches a state where no agent can move
+    traces
+    always {
+        some agt : Agent | eventually move[agt]
+        --should a trace be considered live even if the agent has reached the destination?
+        -- some agt : Agent | eventually move[agt] || agt.position = agt.dest
+    } 
+}
+
+pred nsteps[num: Index] {
+    -- a trace can be completed in n time intervals.
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-- https://link.springer.com/chapter/10.1007/978-3-030-33274-7_6
+
+--junk pile
+
+/* 
+--was going to be used to log how many steps it took to go from start to dest
+abstract sig Counter {
+      var count: one Int
+}
+
+one sig stepCount extends Counter {}
+*/
+
+/*
+
+--these two predicates overconstrain our graphs, we moreso just want dest to be reachable from start
+pred isConnected {
+    -- For Undirected Graphs
+
+    -- The Graph is connected if there exists some node 
+    -- such that all other nodes are reachable from it:
+    some reachNode : Node | Node = reachNode + reachNode.^(edges.to)
+}
+
+
+pred isUndirected {
+    all n : Node | all neighbor : n.edges.to | {
+        n in neighbor.edges.to
+    }
+}
+
+example icTest1 is { isConnected } for {
+    Node = Atom0 + Atom1 + Atom2 + Atom3 + Atom4
+    Edge = Edge01 + Edge12 + Edge13 + Edge34
+    edges = Atom0->Edge01 + Atom1->Edge12 + Atom1->Edge13 + Atom3->Edge34
+    to = Edge01->Atom1 + Edge12->Atom2 + Edge13->Atom3 + Edge34->Atom4
+}
+
+example icTest2 is { not isConnected } for {
+    Node = Atom0 + Atom1 + Atom2 + Atom3 + Atom4
+    Edge = Edge01 + Edge12 + Edge34
+    edges = Atom0->Edge01 + Atom1->Edge12 + Atom3->Edge34
+    to = Edge01->Atom1 + Edge12->Atom2 + Edge34->Atom4
+}
+
+*/
+
+/*
+Simple Example for Solver
+inst structure {
+    Node = Node0 + Node1 + Node2
+    Edge = Edge01 + Edge12
+    edges = Node0->Edge01 + Node1->Edge12
+    to = Edge01->Node1 + Edge12->Node2
+
+    Agent = Agent0
+    start = Agent0->Node0
+    dest = Agent0->Node2
+}
+
+// run { traces and solved } for {
 //     structure
 // }
+*/
 
-run { wellFormed } for {
-    structure
+/*
+test expect {
+    ipfImpliesNotWaiting: { incentivePathFinder implies always { all agt : Agent | {
+            not wait[agt] until agt.position = agt.dest
+        }}} is theorem
 }
+*/
 
-run { incentivePathFinder } for {
-    waitingExample
-}
-
-
-// test expect {
-//     ipfImpliesNotWaiting: { incentivePathFinder implies always { all agt : Agent | {
-//             not wait[agt] until agt.position = agt.dest
-//         }}} is theorem
-// }
-
+/*
 test expect {
     ipfVacuity: { incentivePathFinder } is sat
     nwfFindsPath: { nwfPathFinder implies solved } is theorem
@@ -542,78 +574,12 @@ test expect {
 test expect {
     ipfFindsPathHUHHHHH: { not (incentivePathFinder implies solved) } for exactly 2 Agent is theorem
 }
+*/
 
-
--- pathfinder is like algorithm???
--- structure in traces is like the structure the algorithm operates on
-pred betterPathFinder {
-	traces
-	always {
-        all agt : Agent | {
-            move[agt] until agt.position = agt.dest
-        }
-	}
+/*
+run { 
+    traces
+    some Agent
+    all agt : Agent | agt.start != agt.dest
 }
-
-// test expect {
-//     bpfFindsPath1: { betterPathFinder implies solved } for exactly 2 Agent is theorem
-//     bpfFindsPath2: { wellFormed and betterPathFinder implies solved } for exactly 2 Agent is theorem
-//     bpfFindsPath3: { wellFormed and betterPathFinder implies solved } for 4 Agent, 6 Node is theorem
-// }
-
-// check {
-//     traces and wellFormed implies solved
-// } for exactly one Agent
-
-// run { 
-//     traces
-//     some Agent
-//     all agt : Agent | agt.start != agt.dest
-//     }
-
-// test expect {
-//     wellFormedImpliesSolution: {traces and wellFormed implies (all agt: Agent | eventually (stop[agt]))} is theorem
-// }
-
-pred slidable {
-    -- The graph is "slidable" if for all node 1, 2, 3, there exists
-    -- a path from 1 to 3 without passing through 2.
-
-    pathSetup
-    all node1, node2, node3: Node | {
-        (node1 != node2 and node2 != node3 and node1 != node3) =>
-        { some connectPath : Path | {
-            pathIsList[connectPath]
-            node1 + node2 in connectPath.pth.loc
-            node3 not in connectPath.pth.loc
-        }}
-    }
-
-    -- does slidable => solution is always guaranteed 
-    -- (probably not, try limiting number of agents)
-}
-
-pred liveness {
-    -- a trace is "live" if it never reaches a state where no agent can move
-}
-
-pred nsteps[num: Index] {
-    -- a trace can be completed in n time intervals.
-}
-
--- https://link.springer.com/chapter/10.1007/978-3-030-33274-7_6
-
--- Liveness - no deadlock -> could run into a livelock
--- Optimality issue
--- on track yayyyyy
-
-
-// time step - NO SMT
-// time step
-// while (timestep < Threshold)
-// we run for this many timesteps, 
-// rozat - racket gives SMT + ability to synthesize programs with better structural
-
-// Stepwise properties
-// stepwise optimality???
-// try to show invariants, etc.
+*/

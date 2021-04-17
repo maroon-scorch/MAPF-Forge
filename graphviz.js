@@ -24,8 +24,10 @@ svg = d3.select(svg)
     var nodeToEdgeToNode = Node.edges.to.tuples().map(f => f.toString());
     var position = Agent.position.tuples().map(f => f.toString());
     var agents = Agent.tuples().map(f => f.toString());
-//     var starting = 
-//     var ending = 
+    var starting = Agent.start.tuples().map(f => f.toString());
+    var ending = Agent.dest.tuples().map(f => f.toString());
+
+
 //     console.log(edges);
 //     console.log(edgeTo);
 //     console.log(nodes);
@@ -33,6 +35,18 @@ svg = d3.select(svg)
 //     console.log(Node.edges);
 //     console.log(nodeToEdgeToNode);
     //console.log(.edges.tuples().map(tuples => tuple.atoms()));
+
+    for (var i = 0; i < agents.length; i++){
+            
+      
+      svg.append("text")
+        .attr("x", 220)
+        .attr("y", 130 + i*30)
+        .text(agents[i] + " | start: " + starting[i] + " end: " + ending[i])
+        .style("font-size", "15px")
+        .attr("alignment-baseline","middle")
+
+    }
 
     var nodeToEdgeMap = new Map();
     var atoms = Node.atoms(true);
@@ -65,8 +79,8 @@ svg = d3.select(svg)
     
       
       
-//       console.log(nodeToEdgeMap.keys())
-//       console.log(edgeToNodeMap)
+      console.log(nodeToEdgeMap)
+      console.log(edgeToNodeMap)
 
     for (let node of nodeToEdgeMap.keys()) {
         console.log(node)
@@ -126,7 +140,7 @@ svg = d3.select(svg)
         .data(dataset.nodes)
         .enter().append("circle")
         .attr("fill", function (d) { return d.color; })
-        .attr("r", 20)
+        .attr("r", 30)
         .call(d3.drag()  //sets the event listener for the specified typenames and returns the drag behavior.
             .on("start", dragstarted) //start - after a new pointer becomes active (on mousedown or touchstart).
             .on("drag", dragged)      //drag - after an active pointer moves (on mousemove or touchmove).
@@ -141,23 +155,24 @@ svg = d3.select(svg)
         .enter();
     const text1 = text.append("text")
         .attr("fill", "block")
-        .attr("dx", "0.4em")
+        .attr("dx", "0.3em")
         .style("text-anchor", "middle")
-        .style("font-size", "10px")
+        .style("font-size", "18px")
         .text(d => d.id);
     const text2 = text.append("text")
         .attr("fill", "block")
-        .attr("dx", "-3em")
+        .attr("dx", "-4em")
         .style("font-weight", "bold")
         .style("text-anchor", "middle")
         .text(d => d.agent);
+
 
 
               
     var simulation = d3.forceSimulation(dataset.nodes)
     .force('charge', d3.forceManyBody())
     .force('center', d3.forceCenter(width / 2, height / 2))
-    .force("link", d3.forceLink(dataset.links).id(function(d){return d.id}).distance(200))
+    .force("link", d3.forceLink(dataset.links).distance(0).id(function(d){return d.id}))
     .on('tick', ticked);
 
     //Listen for tick events to render the nodes as they update in your Canvas or SVG.
@@ -207,8 +222,8 @@ svg = d3.select(svg)
     //When the drag gesture starts, the targeted node is fixed to the pointer
   function dragged(d) {
     console.log(d3.event)
-    d.fx = d3.event.dx;
-    d.fy = d3.event.dy;
+    d.fx = d3.event.x;
+    d.fy = d3.event.y;
   }
 
     //the targeted node is released when the gesture ends

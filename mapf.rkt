@@ -141,17 +141,6 @@ pred wait[ag: Agent] {
 //     ag.stops' = ag.stops
 // }
 
-//Assures that no two agents every collide (swap positions)
-pred noCollision {
-    always {
-        all agt1, agt2 : Agent | {
-            agt1 != agt2 => {
-                agt1.position != agt2.position
-                not (agt1.position' = agt2.position and agt2.position' = agt1.position)
-            }
-        }
-    }
-}
 --Current traces form that defines states of movement as all agents taking an action per state
 pred traces {
     preConditions
@@ -179,11 +168,6 @@ pred traces {
 --solved is defined as all agents having reached their destinations
 pred solved {
     all agt: Agent | eventually (agt.position = agt.dest)
-}
-
-// Safety Checking - No Collision has occurred during the process
-test expect {
-    solvedStateHasNoCollision: { traces and solved implies noCollision } is theorem
 }
 
 
@@ -349,6 +333,41 @@ example validPath is { pathSetup and pathIsList[Path] } for {
 /*---------------*\
 |    Properties   |
 \*---------------*/
+// Invariant Checking:
+pred noCollision {
+    -- Assures that no two agents never collide 
+    always {
+        all agt1, agt2 : Agent | {
+            agt1 != agt2 => {
+                -- No Agent Occupies the Same Spot
+                agt1.position != agt2.position
+                -- No Agent Swaps Position during the Process (they collide on the edge)
+                not (agt1.position' = agt2.position and agt2.position' = agt1.position)
+            }
+        }
+    }
+}
+
+// Safety Checking - No Collision has occurred during the process
+test expect {
+    solvedStateHasNoCollision: { traces and solved implies noCollision } is theorem
+}
+
+pred jumping {
+    -- The Agent Skips a Node and "Jumps"
+    eventually { 
+        some agt: Agent | {
+            after {agt.position} not in agt.position + getNeighbors[agt.position]
+        }
+    }
+}
+
+// Invariant - The Agents always trace the graph
+test expect {
+    tracesDoesNotJump: { traces and jumping } is unsat
+    solvedStateDoesNotJump: { traces and solved and jumping } is unsat
+}
+
 pred wellFormed {
     -- The graph is "well-formed" for MAPF if for all agent 1, 2,
     -- there's a path from start of 1 to end of 1 that does not

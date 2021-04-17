@@ -115,7 +115,7 @@ pred move[ag: Agent] {
         -- The next position should be in an unoccupied Place
         ag.position' in openNode
         -- Specify that only one agent can occupy this place
-        after one ~position.ag
+        after one (ag.position).(~position)
         -- Add the new location into the stops
         ag.stops' = ag.stops + ag.position'
         }
@@ -158,7 +158,6 @@ pred traces {
 	init
 	-- Something is always happening
     always {all agt: Agent | move[agt] or wait[agt]}
-    noCollision
 }
 
 /*
@@ -182,6 +181,12 @@ pred solved {
     all agt: Agent | eventually (agt.position = agt.dest)
 }
 
+// Safety Checking - No Collision has occurred during the process
+test expect {
+    solvedStateHasNoCollision: { traces and solved implies noCollision } is theorem
+}
+
+
 -- "Sanity checking":
 test expect {
   -- Unsat Traces makes test vacuously true
@@ -194,6 +199,25 @@ test expect {
 
   hasSolution: {traces and solved} is sat
 }
+
+// Simple Example for Solver
+inst structure {
+    Node = NodeA + NodeB + NodeC + Node0 + Node1 + Node2
+    Edge = EdgeA0 + EdgeB0 + EdgeC0 + Edge01 + Edge02
+    edges = NodeA->EdgeA0 + NodeB->EdgeB0 + NodeC->EdgeC0 +
+    Node0->Edge01 + Node0->Edge02
+    to = EdgeA0->Node0 + EdgeB0->Node0 + EdgeC0->Node0 +
+    Edge01->Node1 + Edge02->Node2
+
+    Agent = AgentA + AgentB + AgentC
+    start = AgentA->NodeA + AgentB->NodeB + AgentC->NodeC
+    dest = AgentA->Node0 + AgentB->Node1 + AgentC->Node2
+}
+
+run { traces and solved } for {
+    structure
+}
+
 
 /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
                                 Traces Test Instances
@@ -476,22 +500,6 @@ pred nsteps[num: Index] {
     -- a trace can be completed in n time intervals.
 }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 -- https://link.springer.com/chapter/10.1007/978-3-030-33274-7_6
 
 --junk pile
@@ -540,23 +548,6 @@ example icTest2 is { not isConnected } for {
 */
 
 /*
-Simple Example for Solver
-inst structure {
-    Node = Node0 + Node1 + Node2
-    Edge = Edge01 + Edge12
-    edges = Node0->Edge01 + Node1->Edge12
-    to = Edge01->Node1 + Edge12->Node2
-
-    Agent = Agent0
-    start = Agent0->Node0
-    dest = Agent0->Node2
-}
-
-// run { traces and solved } for {
-//     structure
-// }
-*/
-
 /*
 test expect {
     ipfImpliesNotWaiting: { incentivePathFinder implies always { all agt : Agent | {

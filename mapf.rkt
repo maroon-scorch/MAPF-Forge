@@ -184,25 +184,6 @@ test expect {
   hasSolution: {traces and solved} is sat
 }
 
-// Simple Example for Solver
-inst structure {
-    Node = NodeA + NodeB + NodeC + Node0 + Node1 + Node2
-    Edge = EdgeA0 + EdgeB0 + EdgeC0 + Edge01 + Edge02
-    edges = NodeA->EdgeA0 + NodeB->EdgeB0 + NodeC->EdgeC0 +
-    Node0->Edge01 + Node0->Edge02
-    to = EdgeA0->Node0 + EdgeB0->Node0 + EdgeC0->Node0 +
-    Edge01->Node1 + Edge02->Node2
-
-    Agent = AgentA + AgentB + AgentC
-    start = AgentA->NodeA + AgentB->NodeB + AgentC->NodeC
-    dest = AgentA->Node0 + AgentB->Node1 + AgentC->Node2
-}
-
-run { traces and solved } for {
-    structure
-}
-
-
 /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
                                 Traces Test Instances
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
@@ -274,6 +255,30 @@ inst collideExample2 {
     dest = AgentA->Node3 + AgentB->Node1
 }
 
+inst multiEdge {
+    Node = Node1 + Node2 + Node3 + Node4
+    Edge = Edge12 + Edge13 + Edge14
+    edges = Node1->Edge12 + Node1->Edge13 + Node1->Edge14
+    to = Edge12->Node2 + Edge13->Node3 + Edge14->Node4
+
+    Agent = AgentA
+    start = AgentA->Node1
+    dest = AgentA->Node4
+}
+
+inst multiAgent {
+    Node = NodeA + NodeB + NodeC + Node0 + Node1
+    Edge = EdgeA0 + EdgeB0 + EdgeC0 + Edge01
+    edges = NodeA->EdgeA0 + NodeB->EdgeB0 + NodeC->EdgeC0 +
+    Node0->Edge01
+    to = EdgeA0->Node0 + EdgeB0->Node0 + EdgeC0->Node0 +
+    Edge01->Node1
+
+    Agent = AgentA + AgentB
+    start = AgentA->NodeA + AgentB->NodeB
+    dest = AgentA->Node0 + AgentB->Node1
+}
+
 test expect {
     oneAgentTest: { traces and solved } for oneAgent is sat
     collideTest: { traces and solved } for collide is unsat
@@ -282,6 +287,23 @@ test expect {
     discreteMapTest: { traces and solved } for discreteMap is sat
     waitingExampleTest: { traces and solved } for waitingExample is sat
 }
+
+
+// Simple Example for Solver
+inst structure {
+    Node = NodeA + NodeB + NodeC + Node0 + Node1 + Node2
+    Edge = EdgeA0 + EdgeB0 + EdgeC0 + Edge01 + Edge02
+    edges = NodeA->EdgeA0 + NodeB->EdgeB0 + NodeC->EdgeC0 +
+    Node0->Edge01 + Node0->Edge02
+    to = EdgeA0->Node0 + EdgeB0->Node0 + EdgeC0->Node0 +
+    Edge01->Node1 + Edge02->Node2
+
+    Agent = AgentA + AgentB + AgentC
+    start = AgentA->NodeA + AgentB->NodeB + AgentC->NodeC
+    dest = AgentA->Node0 + AgentB->Node1 + AgentC->Node2
+}
+
+run { traces and solved } for structure
 
 /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
                         Property Verification
@@ -390,7 +412,10 @@ test expect {
     wellFormedPositive: { wellFormed } for discreteMap is sat
     wellFormedNegative: { wellFormed } for waitingExample is unsat
     wfPathIncludeStartEnd: { wellFormed } for notCollide is unsat
+    { wellFormed and traces implies { some Solution } } for exactly one Solution is theorem
 }
+
+-- separate out the concern
 
 /*
 //Statically checks if a mapf is solvable
@@ -474,7 +499,8 @@ pred incentivePathFinder {
 
 test expect {
     {{ nwfPathFinder => solved } <=> { incentivePathFinder => solved }} is theorem
-    wellFormedSolution: { not (traces and solved) => not wellFormed  } is theorem
+    solutionExists: { nwfPathFinder implies solved } is theorem
+    -- wellFormedSolution: { not (traces and solved) => not wellFormed  } is theorem
 }
 
 test expect {
@@ -515,7 +541,11 @@ pred noLocks {
     not (locked)
 }
 
-pred nsteps[num: Index] {
+-- if it's moving the whole time and could reach destination
+-- deadlock can't reach destination
+-- livelock can reach destination, but agent waits forever and never goes there
+
+pred nsteps[num: Int] {
     -- a trace can be completed in n time intervals.
 }
 

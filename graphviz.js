@@ -199,8 +199,14 @@ svg = d3.select(svg)
     var simulation = d3.forceSimulation(dataset.nodes)
     .force('charge', d3.forceManyBody())
     .force('center', d3.forceCenter(width / 2, height / 2))
-    .force("link", d3.forceLink(dataset.links).distance(0).id(function(d){return d.id}))
+    .force("link", d3.forceLink(dataset.links).distance(300).id(function(d){return d.id}))
     .on('tick', ticked);
+
+    simulation.tick(120);
+
+    node.attr("cx", function(d) { return d.x; })
+      .attr("cy", function(d) { return d.y; })
+    ticked()
 
     //Listen for tick events to render the nodes as they update in your Canvas or SVG.
     simulation.force('link').links(link);

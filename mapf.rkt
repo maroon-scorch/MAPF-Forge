@@ -454,17 +454,22 @@ pred slidable {
     -- (probably not, try limiting number of agents)
 }
 
-//livelock: Trapped in a cycle but still moving
 //deadlock: Can't move
+//livelock: Trapped in a cycle but still moving
+//If any agent ever doesn't reach its destination, that means that it encountered either a deadlock or livelock on its journey.
+//Therefore a predicate constraining that agents reach their destination is constraining that agents don't encounter a lock
 
-pred liveness {
-    -- a trace is "live" if it never reaches a state where no agent can move
-    traces
+pred locked {
     always {
-        some agt : Agent | eventually move[agt]
-        --should a trace be considered live even if the agent has reached the destination?
-        -- some agt : Agent | eventually move[agt] || agt.position = agt.dest
-    } 
+        all agt : Agent | {
+            agt.position != agt.dest
+        }
+    }
+}
+
+pred noLocks {
+    traces
+    not (locked)
 }
 
 pred nsteps[num: Index] {

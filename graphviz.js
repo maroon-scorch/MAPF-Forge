@@ -22,7 +22,10 @@ svg = d3.select(svg)
     var nodes = Node.tuples().map(f => f.toString());
     var nodeTo = Node.edges.tuples().map(f => f.toString());
     var nodeToEdgeToNode = Node.edges.to.tuples().map(f => f.toString());
-    var position = Agent.position.tuples().map(f => f.toString())[0];
+    var position = Agent.position.tuples().map(f => f.toString());
+    var agents = Agent.tuples().map(f => f.toString());
+//     var starting = 
+//     var ending = 
 //     console.log(edges);
 //     console.log(edgeTo);
 //     console.log(nodes);
@@ -76,12 +79,16 @@ svg = d3.select(svg)
 
     for (var i = 0; i < nodes.length; i++) {
       color = "lightgrey"
+      agent = ""
       
-      if (nodes[i] === position){
-        color = "skyblue"
+      for (var j = 0; j < position.length; j++){
+        if (nodes[i] === position[j]){
+          color = "skyblue"
+          agent = agents[j]
+        }
       }
       
-      dataset.nodes.push({id: nodes[i], color: color});
+      dataset.nodes.push({id: nodes[i], color: color, agent: agent });
 
     }
 
@@ -131,9 +138,19 @@ svg = d3.select(svg)
         .attr("class", "text")
         .selectAll("text")
         .data(dataset.nodes)
-        .enter().append("text")
+        .enter();
+    const text1 = text.append("text")
         .attr("fill", "block")
+        .attr("dx", "0.4em")
+        .style("text-anchor", "middle")
+        .style("font-size", "10px")
         .text(d => d.id);
+    const text2 = text.append("text")
+        .attr("fill", "block")
+        .attr("dx", "-3em")
+        .style("font-weight", "bold")
+        .style("text-anchor", "middle")
+        .text(d => d.agent);
 
 
               
@@ -173,7 +190,9 @@ svg = d3.select(svg)
       node.attr("cx", d => d.x)
           .attr("cy", d => d.y);
 
-      text.attr("x", d => d.x - 5) //position of the lower left point of the text
+      text1.attr("x", d => d.x - 5) //position of the lower left point of the text
+          .attr("y", d => d.y + 5); //position of the lower left point of the text
+      text2.attr("x", d => d.x - 5) //position of the lower left point of the text
           .attr("y", d => d.y + 5); //position of the lower left point of the text
     }
 
@@ -188,8 +207,8 @@ svg = d3.select(svg)
     //When the drag gesture starts, the targeted node is fixed to the pointer
   function dragged(d) {
     console.log(d3.event)
-    d.fx = d3.event.x;
-    d.fy = d3.event.y;
+    d.fx = d3.event.dx;
+    d.fy = d3.event.dy;
   }
 
     //the targeted node is released when the gesture ends

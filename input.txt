@@ -1,0 +1,6 @@
+4 1
+A B 1 C 2 D 5
+B
+C D 10
+D
+Agent1 A B

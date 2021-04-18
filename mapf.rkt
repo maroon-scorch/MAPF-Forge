@@ -67,9 +67,8 @@ sig Agent {
     start: one Node,
     dest: one Node, -- For Traveling Salesman, Consider Changing this into set Node?
     var stops: set Node,
-    cumulativeWeight: one Int
+    var cumulativeWeight: one Int
 }
-
 
 //Checks if end is reachable from start
 --used to make sure dest is reachable from start in agent pathfinding
@@ -412,10 +411,12 @@ test expect {
     wellFormedPositive: { wellFormed } for discreteMap is sat
     wellFormedNegative: { wellFormed } for waitingExample is unsat
     wfPathIncludeStartEnd: { wellFormed } for notCollide is unsat
-    { wellFormed and traces implies { some Solution } } for exactly one Solution is theorem
+    -- wellFormed implies { traces and solved is sat } is theorem
+   --  { wellFormed and traces implies { some Solution } } for exactly one Solution is theorem
 }
 
 -- separate out the concern
+-- Create a run in forge core that has wellformed, and just check if those are sat in wellformed and traces
 
 /*
 //Statically checks if a mapf is solvable

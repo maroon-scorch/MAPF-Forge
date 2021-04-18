@@ -3,19 +3,16 @@
 
 ; Load the forge spec in
 (require "mapf.rkt")
-(require "instances.rkt")
+(require "parse-file.rkt")
+; (require "instances.rkt")
 ; (option 'max-tracelength n)
-
-;;; (inst myInst
-;;; (= mySig (+ atom1 (+ atom2 (+ atom3 atom4))))
-;;; )
 
 (define answers (for/last ([n (in-naturals 1)]) 
     (set-option! 'max_tracelength n)
+    (define my-inst (to-inst "input.txt"))
     (run solvability
      #:preds [traces solved]
-     #:bounds structure
-     #:scope [(Int ) (Node 7)]
+     #:bounds my-inst
     )
     #:final (forge:is-sat? solvability)
     solvability

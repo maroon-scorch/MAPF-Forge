@@ -264,9 +264,9 @@ pred move[ag: Agent] {
     -- The Agent Chooses an unoccupied node and traverses to it.
     -- If there are vacant places to move to:
     let neighbors = getNeighbors[ag.position] |  {
-        let openNode = neighbors - Agent.position | {
+        let openNode = neighbors - (Agent - ag).position | {
         -- Guard: there's an unoccupied place where the agent can move to
-        some neighbors - Agent.position
+        some neighbors - (Agent - ag).position
         -- The next position should be in an unoccupied Place
         ag.position' in openNode
         -- Specify that only one agent can occupy this place

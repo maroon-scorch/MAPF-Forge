@@ -49,35 +49,32 @@ svg = d3.select(svg)
     var ending = Agent.dest.tuples().map(f => f.toString());
 
 
-//     console.log(edges);
-//     console.log(edgeTo);
-//     console.log(nodes);
-//      console.log(nodeTo);
-//     console.log(Node.edges);
-//     console.log(nodeToEdgeToNode);
-    //console.log(.edges.tuples().map(tuples => tuple.atoms()));
+//     for (var i = 0; i < agents.length; i++){    
+//       svg.append("text")
+//         .attr("x", 220)
+//         .attr("y", 130 + i*30)
+//         .text(agents[i] + " | start: " + starting[i] + " end: " + ending[i])
+//         .style("font-size", "15px")
+//         .attr("alignment-baseline","middle")
 
-    for (var i = 0; i < agents.length; i++){
-            
-      
-      svg.append("text")
-        .attr("x", 220)
-        .attr("y", 130 + i*30)
-        .text(agents[i] + " | start: " + starting[i] + " end: " + ending[i])
-        .style("font-size", "15px")
-        .attr("alignment-baseline","middle")
-
-    }
+//     }
 
     var nodeToEdgeMap = new Map();
     var atoms = Node.atoms(true);
+    
     atoms.forEach((node) => {
       const outEdge = node.edges.tuples().map(tuple => tuple.atoms());
+      var nodeEdges = []
       outEdge.map((info) => {
         
-        let edgeName = info[0].toString()
+        console.log(info)
         
-        nodeToEdgeMap.set(node.tuples().map(f=>f.toString())[0], edgeName)
+        let edgeName = info[0].toString()
+        nodeEdges.push(edgeName)
+        //console.log(node)
+
+        
+        nodeToEdgeMap.set(node.tuples().map(f=>f.toString())[0], nodeEdges)
         
       });
       
@@ -105,7 +102,9 @@ svg = d3.select(svg)
 
     for (let node of nodeToEdgeMap.keys()) {
         console.log(node)
-        dataset.links.push({source: node, target: edgeToNodeMap.get(nodeToEdgeMap.get(node))} )
+        for (let edge of nodeToEdgeMap.get(node)){
+          dataset.links.push({source: node, target: edgeToNodeMap.get(edge)} )  
+        }
     }
 
 //     console.log(dataset)

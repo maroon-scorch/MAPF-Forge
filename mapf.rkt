@@ -293,28 +293,28 @@ pred movetest {
     all agt: Agent | move[Agent]
 }
 
-test expect {
-    allMove: {
-        some Atom0, Atom1, Atom2, Atom3, Atom4, Atom5, Atom6: Node | some Agent0, Agent1, Agent2: Agent |
-        some Edge01, Edge10, Edge02, Edge20, Edge13, Edge31, Edge14, Edge41,
-             Edge25, Edge52, Edge26, Edge62, Edge34, Edge43, Edge56, Edge65: Edge | {
-            edges = Atom0->Edge01 + Atom1->Edge10 + Atom0->Edge02 + Atom2->Edge20 + Atom1->Edge13 + Atom3->Edge31 + Atom1->Edge14 +
-                    Atom4->Edge41 + Atom2->Edge25 + Atom5->Edge52 + Atom2->Edge26 + Atom6->Edge62 + Atom3->Edge34 + Atom4->Edge43 +
-                    Atom5->Edge56 + Atom6->Edge65
-            to = Edge01->Atom1 + Edge10->Atom0 + Edge02->Atom2 + Edge20->Atom0 + Edge13->Atom3 + Edge31->Atom1 + Edge14->Atom4 +
-                 Edge41->Atom1 + Edge25->Atom5 + Edge52->Atom2 + Edge26->Atom6 + Edge62->Atom2 + Edge34->Atom4 + Edge43->Atom3 +
-                 Edge56->Atom6 + Edge65->Atom6
-            start = Agent0->Atom0 + Agent1->Atom3 + Agent2->Atom2
-            dest = Agent0->Atom3 + Agent1->Atom4 + Agent2->Atom5
-            position = Agent0->Atom0 + Agent1->Atom3 + Agent2->Atom2
-            position' = Atom0->Atom1 + Agent1->Atom4 + Agent2->Atom5
-            no stops
-            stops' = Agent0->Atom1 + Agent1->Atom4 + Agent2->Atom5
+// test expect {
+//     allMove: {
+//         some Atom0, Atom1, Atom2, Atom3, Atom4, Atom5, Atom6: Node | some Agent0, Agent1, Agent2: Agent |
+//         some Edge01, Edge10, Edge02, Edge20, Edge13, Edge31, Edge14, Edge41,
+//              Edge25, Edge52, Edge26, Edge62, Edge34, Edge43, Edge56, Edge65: Edge | {
+//             edges = Atom0->Edge01 + Atom1->Edge10 + Atom0->Edge02 + Atom2->Edge20 + Atom1->Edge13 + Atom3->Edge31 + Atom1->Edge14 +
+//                     Atom4->Edge41 + Atom2->Edge25 + Atom5->Edge52 + Atom2->Edge26 + Atom6->Edge62 + Atom3->Edge34 + Atom4->Edge43 +
+//                     Atom5->Edge56 + Atom6->Edge65
+//             to = Edge01->Atom1 + Edge10->Atom0 + Edge02->Atom2 + Edge20->Atom0 + Edge13->Atom3 + Edge31->Atom1 + Edge14->Atom4 +
+//                  Edge41->Atom1 + Edge25->Atom5 + Edge52->Atom2 + Edge26->Atom6 + Edge62->Atom2 + Edge34->Atom4 + Edge43->Atom3 +
+//                  Edge56->Atom6 + Edge65->Atom6
+//             start = Agent0->Atom0 + Agent1->Atom3 + Agent2->Atom2
+//             dest = Agent0->Atom3 + Agent1->Atom4 + Agent2->Atom5
+//             position = Agent0->Atom0 + Agent1->Atom3 + Agent2->Atom2
+//             position' = Atom0->Atom1 + Agent1->Atom4 + Agent2->Atom5
+//             no stops
+//             stops' = Agent0->Atom1 + Agent1->Atom4 + Agent2->Atom5
             
-            movetest
-        }
-    } is sat
-}
+//             movetest
+//         }
+//     } is sat
+// }
 // example allMove is { movetest } for {
 //     Node = Atom0 + Atom1 + Atom2 + Atom3 + Atom4 + Atom5 + Atom6
 //     Edge = Edge01 + Edge10 + Edge02 + Edge20 + Edge13 + Edge31 + Edge14 + Edge41 + Edge25 + Edge52 + Edge26 + Edge62 +
@@ -462,29 +462,6 @@ test expect {
 
   hasSolution: {traces and solved} is sat
 }
-
-<<<<<<< HEAD
-// Simple Example for Solver
-inst structure {
-    Node = NodeA + NodeB + NodeC + Node0 + Node1 + Node2
-    Edge = EdgeA0 + EdgeB0 + EdgeC0 + Edge01 + Edge02
-    edges = NodeA->EdgeA0 + NodeB->EdgeB0 + NodeC->EdgeC0 +
-    Node0->Edge01 + Node0->Edge02
-    to = EdgeA0->Node0 + EdgeB0->Node0 + EdgeC0->Node0 +
-    Edge01->Node1 + Edge02->Node2
-
-    Agent = AgentA + AgentB + AgentC
-    start = AgentA->NodeA + AgentB->NodeB + AgentC->NodeC
-    dest = AgentA->Node0 + AgentB->Node1 + AgentC->Node2
-}
-
-// run { traces and solved } for {
-//     structure
-// }
-
-
-=======
->>>>>>> caf10c2a55200cb30910b7cdc031e3f5c8315b4c
 /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
                                 Traces Test Instances
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
@@ -800,18 +777,11 @@ pred incentivePathFinder {
 	}
 }
 
-<<<<<<< HEAD
 // test expect {
 //     {{ nwfPathFinder => solved } <=> { incentivePathFinder => solved }} is theorem
-//     wellFormedSolution: { not (traces and solved) => not wellFormed  } is theorem
+//     solutionExists: { nwfPathFinder implies solved } is theorem
+//     -- wellFormedSolution: { not (traces and solved) => not wellFormed  } is theorem
 // }
-=======
-test expect {
-    {{ nwfPathFinder => solved } <=> { incentivePathFinder => solved }} is theorem
-    solutionExists: { nwfPathFinder implies solved } is theorem
-    -- wellFormedSolution: { not (traces and solved) => not wellFormed  } is theorem
-}
->>>>>>> caf10c2a55200cb30910b7cdc031e3f5c8315b4c
 
 // test expect {
 //     { nwfPathFinder implies wellFormed } is theorem

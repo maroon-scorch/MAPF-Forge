@@ -77,6 +77,78 @@ pred reachable[start: Node, end: Node] {
     end in start + start.^(edges.to)
 }
 //TODO::Test cases for reachable ~5 tests
+pred reachableTestpred {
+    all agt: Agent | reachable [agt.start, agt.dest]
+}
+example reachableEnds is { reachableTestpred } for {
+    Node = Atom0 + Atom1 + Atom2 + Atom3
+    Edge = Edge01 + Edge12 + Edge23
+    edges = Atom0->Edge01 + Atom1->Edge12 + Atom2->Edge23
+    to = Edge01->Atom1 + Edge12->Atom2 + Edge23->Atom3
+    Agent = Agent0
+    start = Agent0->Atom0
+    dest = Agent0->Atom3
+}
+
+example reachableNextNode is { reachableTestpred } for {
+    Node = Atom0 + Atom1 + Atom2 + Atom3
+    Edge = Edge01 + Edge12 + Edge23
+    edges = Atom0->Edge01 + Atom1->Edge12 + Atom2->Edge23
+    to = Edge01->Atom1 + Edge12->Atom2 + Edge23->Atom3
+    Agent = Agent0
+    start = Agent0->Atom0
+    dest = Agent0->Atom1
+}
+
+example reachableSecondNode is { reachableTestpred } for {
+    Node = Atom0 + Atom1 + Atom2 + Atom3
+    Edge = Edge01 + Edge12 + Edge23
+    edges = Atom0->Edge01 + Atom1->Edge12 + Atom2->Edge23
+    to = Edge01->Atom1 + Edge12->Atom2 + Edge23->Atom3
+    Agent = Agent0
+    start = Agent0->Atom1
+    dest = Agent0->Atom3
+}
+
+example reachableDisconnected is { not reachableTestpred } for {
+    Node = Atom0 + Atom1 + Atom2 + Atom3 + Atom4
+    Edge = Edge01 + Edge12 + Edge23
+    edges = Atom0->Edge01 + Atom1->Edge12 + Atom2->Edge23
+    to = Edge01->Atom1 + Edge12->Atom2 + Edge23->Atom3
+    Agent = Agent0
+    start = Agent0->Atom1
+    dest = Agent0->Atom4
+}
+
+example reachableBackwardsDirectional is { not reachableTestpred } for {
+    Node = Atom0 + Atom1 + Atom2 + Atom3
+    Edge = Edge01 + Edge12 + Edge23
+    edges = Atom0->Edge01 + Atom1->Edge12 + Atom2->Edge23
+    to = Edge01->Atom1 + Edge12->Atom2 + Edge23->Atom3
+    Agent = Agent0
+    start = Agent0->Atom3
+    dest = Agent0->Atom0
+}
+
+example reachableBackwardsUndirectional is { reachableTestpred } for {
+    Node = Atom0 + Atom1 + Atom2 + Atom3
+    Edge = Edge01 + Edge10 + Edge12 + Edge21 + Edge23 + Edge32
+    edges = Atom0->Edge01 + Atom1->Edge10 + Atom1->Edge12 + Atom2->Edge21 + Atom2->Edge23 + Atom3->Edge32
+    to = Edge01->Atom1 + Edge10->Atom0 + Edge12->Atom2 + Edge21->Atom1 + Edge23->Atom3 + Edge32->Atom2
+    Agent = Agent0
+    start = Agent0->Atom3
+    dest = Agent0->Atom0
+}
+
+example reachableSelfEdge is { reachableTestpred } for {
+    Node = Atom0 + Atom1 + Atom2 + Atom3
+    Edge = Edge01 + Edge10 + Edge12 + Edge21 + Edge23 + Edge33
+    edges = Atom0->Edge01 + Atom1->Edge10 + Atom1->Edge12 + Atom2->Edge21 + Atom2->Edge23 + Atom3->Edge33
+    to = Edge01->Atom1 + Edge10->Atom0 + Edge12->Atom2 + Edge21->Atom1 + Edge23->Atom3 + Edge33->Atom3
+    Agent = Agent0
+    start = Agent0->Atom3
+    dest = Agent0->Atom3
+}
 
 //Determines the static parts of our properties before the initial state;
 //Makes sure each agent can reach its destination from its start
@@ -86,7 +158,55 @@ pred preConditions {
     dest.~dest in iden -- Agents shouldn't have the same destination
 }
 //TODO::Test cases for preConditions
+example reachabilityAll is { preConditions } for {
+    Node = Atom0 + Atom1 + Atom2 + Atom3
+    Edge = Edge01 + Edge10 + Edge12 + Edge21 + Edge23 + Edge33
+    edges = Atom0->Edge01 + Atom1->Edge10 + Atom1->Edge12 + Atom2->Edge21 + Atom2->Edge23 + Atom3->Edge33
+    to = Edge01->Atom1 + Edge10->Atom0 + Edge12->Atom2 + Edge21->Atom1 + Edge23->Atom3 + Edge33->Atom3
+    Agent = Agent0 + Agent1 + Agent2
+    start = Agent0->Atom3 + Agent1->Atom1 + Agent2->Atom2
+    dest = Agent0->Atom3 + Agent1->Atom2 + Agent2->Atom1
+}
 
+example reachabilityNone is { not preConditions } for {
+    Node = Atom0 + Atom1 + Atom2 + Atom3 + Atom4
+    Edge = Edge01 + Edge12 + Edge23 + Edge34
+    edges = Atom0->Edge01 + Atom1->Edge12 + Atom2->Edge23 + Atom3->Edge34
+    to = Edge01->Atom1 + Edge12->Atom2 + Edge23->Atom3 + Edge34->Atom4
+    Agent = Agent0 + Agent1 + Agent2
+    start = Agent0->Atom4 + Agent1->Atom3 + Agent2->Atom2
+    dest = Agent0->Atom3 + Agent1->Atom2 + Agent2->Atom1
+}
+
+example reachabilitySome is { not preConditions } for {
+    Node = Atom0 + Atom1 + Atom2 + Atom3 + Atom4
+    Edge = Edge01 + Edge10 + Edge12 + Edge21 + Edge23 + Edge33
+    edges = Atom0->Edge01 + Atom1->Edge10 + Atom1->Edge12 + Atom2->Edge21 + Atom2->Edge23 + Atom3->Edge33
+    to = Edge01->Atom1 + Edge10->Atom0 + Edge12->Atom2 + Edge21->Atom1 + Edge23->Atom3 + Edge33->Atom3
+    Agent = Agent0 + Agent1 + Agent2
+    start = Agent0->Atom0 + Agent1->Atom2 + Agent2->Atom3
+    dest = Agent0->Atom3 + Agent1->Atom1 + Agent2->Atom4
+}
+
+example sameStart is { not preConditions } for {
+    Node = Atom0 + Atom1 + Atom2 + Atom3
+    Edge = Edge01 + Edge10 + Edge12 + Edge21 + Edge23 + Edge33
+    edges = Atom0->Edge01 + Atom1->Edge10 + Atom1->Edge12 + Atom2->Edge21 + Atom2->Edge23 + Atom3->Edge33
+    to = Edge01->Atom1 + Edge10->Atom0 + Edge12->Atom2 + Edge21->Atom1 + Edge23->Atom3 + Edge33->Atom3
+    Agent = Agent0 + Agent1
+    start = Agent0->Atom0 + Agent1->Atom0
+    dest = Agent0->Atom3 + Agent1->Atom2
+}
+
+example sameStart is { not preConditions } for {
+    Node = Atom0 + Atom1 + Atom2 + Atom3
+    Edge = Edge01 + Edge10 + Edge12 + Edge21 + Edge23 + Edge33
+    edges = Atom0->Edge01 + Atom1->Edge10 + Atom1->Edge12 + Atom2->Edge21 + Atom2->Edge23 + Atom3->Edge33
+    to = Edge01->Atom1 + Edge10->Atom0 + Edge12->Atom2 + Edge21->Atom1 + Edge23->Atom3 + Edge33->Atom3
+    Agent = Agent0 + Agent1
+    start = Agent0->Atom0 + Agent1->Atom1
+    dest = Agent0->Atom3 + Agent1->Atom3
+}
 
 /*---------------*\
 | Agent Operation |
@@ -97,13 +217,61 @@ pred init {
     all agt : Agent | agt.position = agt.start
 }
 //TODO::Test cases for init
+example initBasicTrue is { init } for {
+    Node = Atom0 + Atom1 + Atom2 + Atom3
+    Edge = Edge01 + Edge10 + Edge12 + Edge21 + Edge23 + Edge33
+    edges = Atom0->Edge01 + Atom1->Edge10 + Atom1->Edge12 + Atom2->Edge21 + Atom2->Edge23 + Atom3->Edge33
+    to = Edge01->Atom1 + Edge10->Atom0 + Edge12->Atom2 + Edge21->Atom1 + Edge23->Atom3 + Edge33->Atom3
+    Agent = Agent0 + Agent1 + Agent2
+    start = Agent0->Atom3 + Agent1->Atom1 + Agent2->Atom2
+    dest = Agent0->Atom3 + Agent1->Atom2 + Agent2->Atom1
+    position = Agent0->Atom3 + Agent1->Atom1 + Agent2->Atom2
+}
 
+example initBasicFalse is { not init } for {
+    Node = Atom0 + Atom1 + Atom2 + Atom3
+    Edge = Edge01 + Edge10 + Edge12 + Edge21 + Edge23 + Edge33
+    edges = Atom0->Edge01 + Atom1->Edge10 + Atom1->Edge12 + Atom2->Edge21 + Atom2->Edge23 + Atom3->Edge33
+    to = Edge01->Atom1 + Edge10->Atom0 + Edge12->Atom2 + Edge21->Atom1 + Edge23->Atom3 + Edge33->Atom3
+    Agent = Agent0 + Agent1 + Agent2
+    start = Agent0->Atom3 + Agent1->Atom1 + Agent2->Atom2
+    dest = Agent0->Atom3 + Agent1->Atom2 + Agent2->Atom1
+    position = Agent0->Atom2 + Agent1->Atom3 + Agent2->Atom0
+}
+
+// example initElectrum is { init } for {
+//     Node = Atom0 + Atom1 + Atom2 + Atom3
+//     Edge = Edge01 + Edge10 + Edge12 + Edge21 + Edge23 + Edge33
+//     edges = Atom0->Edge01 + Atom1->Edge10 + Atom1->Edge12 + Atom2->Edge21 + Atom2->Edge23 + Atom3->Edge33
+//     to = Edge01->Atom1 + Edge10->Atom0 + Edge12->Atom2 + Edge21->Atom1 + Edge23->Atom3 + Edge33->Atom3
+//     Agent = Agent0 + Agent1 + Agent2
+//     start = Agent0->Atom3 + Agent1->Atom1 + Agent2->Atom2
+//     dest = Agent0->Atom3 + Agent1->Atom2 + Agent2->Atom1
+//     position = Agent0->Atom3 + Agent1->Atom3 + Agent2->Atom0
+//     position' = Agent0->Atom3 + Agent1->Atom2 + Atom2->Atom1
+// }
 
 fun getNeighbors[loc: Node]: set Node {
     -- Returns the neighbors of the current node
     loc.edges.to
 }
-//TODO::Test cases for init
+//TODO::Test cases for getNeighbors
+// lone sig testNode extends Node {}
+
+// example getNeighborsBasic is { #getNeighbors[testNode] = 3 } for {
+//     Node = Atom0 + Atom1 + Atom2 + testNode
+//     Edge = Edge01 + Edge10 + Edge12 + Edge21
+//     edges = Atom0->Edge01 + Atom1->Edge10 + Atom1->Edge12 + Atom2->Edge21
+//     to = Edge01->Atom1 + Edge10->Atom0 + Edge12->Atom2 + Edge21->Atom1
+// }
+
+// example getNeighborsZero is { #getNeighbors[testNode] = 0 } for {
+//     Node = Atom0 + Atom1 + Atom2 + testNode
+//     Edge = Edge01 + Edge10 + Edge12 + Edge21 + Edget1 + Edget2 + Edget3
+//     edges = Atom0->Edge01 + Atom1->Edge10 + Atom1->Edge12 + Atom2->Edge21 + testNode->Edget0 + testNode->Edget1 + testNode->Edget2
+//     to = Edge01->Atom1 + Edge10->Atom0 + Edge12->Atom2 + Edge21->Atom1 + Edget0->Atom0 + Edget1->Atom1 + Edget2->Atom2
+// }
+
 
 pred move[ag: Agent] {
     -- The Agent Chooses an unoccupied node and traverses to it.
@@ -121,6 +289,118 @@ pred move[ag: Agent] {
         }
     }
 }
+
+pred movetest {
+    all agt: Agent | move[Agent]
+}
+
+test expect {
+    allMove: {
+        some Atom0, Atom1, Atom2, Atom3, Atom4, Atom5, Atom6: Node | some Agent0, Agent1, Agent2: Agent |
+        some Edge01, Edge10, Edge02, Edge20, Edge13, Edge31, Edge14, Edge41,
+             Edge25, Edge52, Edge26, Edge62, Edge34, Edge43, Edge56, Edge65: Edge | {
+            edges = Atom0->Edge01 + Atom1->Edge10 + Atom0->Edge02 + Atom2->Edge20 + Atom1->Edge13 + Atom3->Edge31 + Atom1->Edge14 +
+                    Atom4->Edge41 + Atom2->Edge25 + Atom5->Edge52 + Atom2->Edge26 + Atom6->Edge62 + Atom3->Edge34 + Atom4->Edge43 +
+                    Atom5->Edge56 + Atom6->Edge65
+            to = Edge01->Atom1 + Edge10->Atom0 + Edge02->Atom2 + Edge20->Atom0 + Edge13->Atom3 + Edge31->Atom1 + Edge14->Atom4 +
+                 Edge41->Atom1 + Edge25->Atom5 + Edge52->Atom2 + Edge26->Atom6 + Edge62->Atom2 + Edge34->Atom4 + Edge43->Atom3 +
+                 Edge56->Atom6 + Edge65->Atom6
+            start = Agent0->Atom0 + Agent1->Atom3 + Agent2->Atom2
+            dest = Agent0->Atom3 + Agent1->Atom4 + Agent2->Atom5
+            position = Agent0->Atom0 + Agent1->Atom3 + Agent2->Atom2
+            position' = Atom0->Atom1 + Agent1->Atom4 + Agent2->Atom5
+            no stops
+            stops' = Agent0->Atom1 + Agent1->Atom4 + Agent2->Atom5
+            
+            movetest
+        }
+    } is sat
+}
+// example allMove is { movetest } for {
+//     Node = Atom0 + Atom1 + Atom2 + Atom3 + Atom4 + Atom5 + Atom6
+//     Edge = Edge01 + Edge10 + Edge02 + Edge20 + Edge13 + Edge31 + Edge14 + Edge41 + Edge25 + Edge52 + Edge26 + Edge62 +
+//            Edge34 + Edge43 + Edge56 + Edge65
+//     edges = Atom0->Edge01 + Atom1->Edge10 + Atom0->Edge02 + Atom2->Edge20 + Atom1->Edge13 + Atom3->Edge31 + Atom1->Edge14 +
+//             Atom4->Edge41 + Atom2->Edge25 + Atom5->Edge52 + Atom2->Edge26 + Atom6->Edge62 + Atom3->Edge34 + Atom4->Edge43 +
+//             Atom5->Edge56 + Atom6->Edge65
+//     to = Edge01->Atom1 + Edge10->Atom0 + Edge02->Atom2 + Edge20->Atom0 + Edge13->Atom3 + Edge31->Atom1 + Edge14->Atom4 +
+//          Edge41->Atom1 + Edge25->Atom5 + Edge52->Atom2 + Edge26->Atom6 + Edge62->Atom2 + Edge34->Atom4 + Edge43->Atom3 +
+//          Edge56->Atom6 + Edge65->Atom6
+//     Agent = Agent0 + Agent1 + Agent2
+//     start = Agent0->Atom0 + Agent1->Atom3 + Agent2->Atom2
+//     dest = Agent0->Atom3 + Agent1->Atom4 + Agent2->Atom5
+//     position = Agent0->Atom0 + Agent1->Atom3 + Agent2->Atom2
+//     position' = Agent0->Atom1 + Agent1->Atom4 + Agent2->Atom5
+//     stops = none
+//     stops' = Agent0->Atom1 + Agent1->Atom4 + Agent2->Atom5
+// }
+
+// example noStops is { not movetest } for {
+//     Node = Atom0 + Atom1 + Atom2 + Atom3 + Atom4 + Atom5 + Atom6
+//     Edge = Edge01 + Edge10 + Edge02 + Edge20 + Edge13 + Edge31 + Edge14 + Edge41 + Edge25 + Edge52 + Edge26 + Edge62 +
+//            Edge34 + Edge43 + Edge56 + Edge65
+//     edges = Atom0->Edge01 + Atom1->Edge10 + Atom0->Edge02 + Atom2->Edge20 + Atom1->Edge13 + Atom3->Edge31 + Atom1->Edge14 +
+//             Atom4->Edge41 + Atom2->Edge25 + Atom5->Edge52 + Atom2->Edge26 + Atom6->Edge62 + Atom3->Edge34 + Atom4->Edge43 +
+//             Atom5->Edge56 + Atom6->Edge65
+//     to = Edge01->Atom1 + Edge10->Atom0 + Edge02->Atom2 + Edge20->Atom0 + Edge13->Atom3 + Edge31->Atom1 + Edge14->Atom4 +
+//          Edge41->Atom1 + Edge25->Atom5 + Edge52->Atom2 + Edge26->Atom6 + Edge62->Atom2 + Edge34->Atom4 + Edge43->Atom3 +
+//          Edge56->Atom6 + Edge65->Atom6
+//     Agent = Agent0 + Agent1 + Agent2
+//     start = Agent0->Atom0 + Agent1->Atom3 + Agent2->Atom2
+//     dest = Agent0->Atom3 + Agent1->Atom4 + Agent2->Atom5
+//     position = Agent0->Atom0 + Agent1->Atom3 + Agent2->Atom2
+//     position' = Atom0->Atom1 + Agent1->Atom4 + Agent2->Atom5
+//     stops = none
+//     stops' = none
+// }
+
+// example tailGate is { not movetest } for {
+//     Node = Atom0 + Atom1 + Atom2 + Atom3 + Atom4 + Atom5 + Atom6
+//     Edge = Edge01 + Edge10 + Edge02 + Edge20 + Edge13 + Edge31 + Edge14 + Edge41 + Edge25 + Edge52 + Edge26 + Edge62
+//     edges = Atom0->Edge01 + Atom1->Edge10 + Atom0->Edge02 + Atom2->Edge20 + Atom1->Edge13 + Atom3->Edge31 + Atom1->Edge14 +
+//             Atom4->Edge41 + Atom2->Edge25 + Atom5->Edge52 + Atom2->Edge26 + Atom6->Edge62
+//     to = Edge01->Atom1 + Edge10->Atom0 + Edge02->Atom2 + Edge20->Atom0 + Edge13->Atom3 + Edge31->Atom1 + Edge14->Atom4 +
+//          Edge41->Atom1 + Edge25->Atom5 + Edge52->Atom2 + Edge26->Atom6 + Edge62->Atom2
+//     Agent = Agent0 + Agent1 + Agent2
+//     start = Agent0->Atom0 + Agent1->Atom1 + Agent2->Atom2
+//     dest = Agent0->Atom3 + Agent1->Atom4 + Agent2->Atom5
+//     position = Agent0->Atom0 + Agent1->Atom1 + Agent2->Atom2
+//     position' = Atom0->Atom1 + Agent1->Atom4 + Agent2->Atom5
+//     stops = none
+//     stops' = Agent0->Atom1 + Agent1->Atom4 + Agent2->Atom5
+// }
+
+// example collision is { not movetest } for {
+//     Node = Atom0 + Atom1 + Atom2 + Atom3 + Atom4 + Atom5 + Atom6
+//     Edge = Edge01 + Edge10 + Edge02 + Edge20 + Edge13 + Edge31 + Edge14 + Edge41 + Edge25 + Edge52 + Edge26 + Edge62
+//     edges = Atom0->Edge01 + Atom1->Edge10 + Atom0->Edge02 + Atom2->Edge20 + Atom1->Edge13 + Atom3->Edge31 + Atom1->Edge14 +
+//             Atom4->Edge41 + Atom2->Edge25 + Atom5->Edge52 + Atom2->Edge26 + Atom6->Edge62
+//     to = Edge01->Atom1 + Edge10->Atom0 + Edge02->Atom2 + Edge20->Atom0 + Edge13->Atom3 + Edge31->Atom1 + Edge14->Atom4 +
+//          Edge41->Atom1 + Edge25->Atom5 + Edge52->Atom2 + Edge26->Atom6 + Edge62->Atom2
+//     Agent = Agent0 + Agent1 + Agent2
+//     start = Agent0->Atom0 + Agent1->Atom1 + Agent2->Atom2
+//     dest = Agent0->Atom3 + Agent1->Atom0 + Agent2->Atom5
+//     position = Agent0->Atom0 + Agent1->Atom1 + Agent2->Atom2
+//     position' = Atom0->Atom1 + Agent1->Atom0 + Agent2->Atom5
+//     stops = none
+//     stops' = Agent0->Atom1 + Agent1->Atom0 + Agent2->Atom5
+// }
+
+// example meetUp is { not movetest } for {
+//     Node = Atom0 + Atom1 + Atom2 + Atom3 + Atom4 + Atom5 + Atom6
+//     Edge = Edge01 + Edge10 + Edge02 + Edge20 + Edge13 + Edge31 + Edge14 + Edge41 + Edge25 + Edge52 + Edge26 + Edge62
+//     edges = Atom0->Edge01 + Atom1->Edge10 + Atom0->Edge02 + Atom2->Edge20 + Atom1->Edge13 + Atom3->Edge31 + Atom1->Edge14 +
+//             Atom4->Edge41 + Atom2->Edge25 + Atom5->Edge52 + Atom2->Edge26 + Atom6->Edge62
+//     to = Edge01->Atom1 + Edge10->Atom0 + Edge02->Atom2 + Edge20->Atom0 + Edge13->Atom3 + Edge31->Atom1 + Edge14->Atom4 +
+//          Edge41->Atom1 + Edge25->Atom5 + Edge52->Atom2 + Edge26->Atom6 + Edge62->Atom2
+//     Agent = Agent0 + Agent1 + Agent2
+//     start = Agent0->Atom3 + Agent1->Atom4 + Agent2->Atom2
+//     dest = Agent0->Atom0 + Agent1->Atom1 + Agent2->Atom5
+//     position = Agent0->Atom3 + Agent1->Atom4 + Agent2->Atom2
+//     position' = Atom0->Atom1 + Agent1->Atom1 + Agent2->Atom5
+//     stops = none
+//     stops' = Agent0->Atom1 + Agent1->Atom1 + Agent2->Atom5
+// }
 
 pred wait[ag: Agent] {
     -- The Agent waits for the turn.
@@ -214,9 +494,9 @@ inst structure {
     dest = AgentA->Node0 + AgentB->Node1 + AgentC->Node2
 }
 
-run { traces and solved } for {
-    structure
-}
+// run { traces and solved } for {
+//     structure
+// }
 
 
 /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -453,14 +733,14 @@ pred incentivePathFinder {
 	}
 }
 
-test expect {
-    {{ nwfPathFinder => solved } <=> { incentivePathFinder => solved }} is theorem
-    wellFormedSolution: { not (traces and solved) => not wellFormed  } is theorem
-}
+// test expect {
+//     {{ nwfPathFinder => solved } <=> { incentivePathFinder => solved }} is theorem
+//     wellFormedSolution: { not (traces and solved) => not wellFormed  } is theorem
+// }
 
-test expect {
-    { nwfPathFinder implies wellFormed } is theorem
-} 
+// test expect {
+//     { nwfPathFinder implies wellFormed } is theorem
+// } 
 
 pred slidable {
     -- The graph is "slidable" if for all node 1, 2, 3, there exists
@@ -483,17 +763,25 @@ pred slidable {
 //If any agent ever doesn't reach its destination, that means that it encountered either a deadlock or livelock on its journey.
 //Therefore a predicate constraining that agents reach their destination is constraining that agents don't encounter a lock
 
-pred locked {
-    always {
-        all agt : Agent | {
-            agt.position != agt.dest
+pred deadLocked {
+    traces
+    pathSetup
+    all agt : Agent | {
+        no connectedPath : Path | {
+            pathIsList[connectedPath]
+            all agt2: Agent - agt | {
+                agt2.position not in connectedPath.pth.loc
+            }
         }
-    }
+    }       
 }
 
-pred noLocks {
+pred liveLocked {
     traces
-    not (locked)
+    not deadLocked
+    always {
+        some agt: Agent | agt.position != agt.dest
+    }
 }
 
 pred nsteps[num: Index] {

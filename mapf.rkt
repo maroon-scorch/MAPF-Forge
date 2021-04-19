@@ -263,10 +263,12 @@ fun getNeighbors[loc: Node]: set Node {
 pred move[ag: Agent] {
     -- The Agent Chooses an unoccupied node and traverses to it.
     -- If there are vacant places to move to:
-    let neighbors = getNeighbors[ag.position] |  {
-        let openNode = neighbors - (Agent - ag).position | {
+
+    --this version didnt allow agents to take the previously held position of a different agent despite no collisions
+    /*let neighbors = getNeighbors[ag.position] |  {
+        let openNode = neighbors - (Agent - ag).position' | {
         -- Guard: there's an unoccupied place where the agent can move to
-        some neighbors - (Agent - ag).position
+        some neighbors - (Agent - ag).position'
         -- The next position should be in an unoccupied Place
         ag.position' in openNode
         -- Specify that only one agent can occupy this place
@@ -274,6 +276,20 @@ pred move[ag: Agent] {
         -- Add the new location into the stops
         ag.stops' = ag.stops + ag.position'
         }
+    }*/
+
+    --This version allows agents to take the previously held position of a different agent
+    let neighbors = getNeighbors[ag.position] |  {
+        -- Guard: there's an unoccupied place where the agent can move to
+        some neighbors
+        -- The next position should be in an unoccupied Place
+        ag.position' in neighbors
+        --agents cant swap positions, that'd be a collision
+        all agt: (Agent - ag) | not ((agt.position' = ag.position) and (ag.position' = agt.position))
+        -- Specify that only one agent can occupy this place
+        after one (ag.position).(~position)
+        -- Add the new location into the stops
+        ag.stops' = ag.stops + ag.position'
     }
 }
 
@@ -301,7 +317,7 @@ pred traces {
     preConditions
 	init
 	-- Something is always happening
-    always {all agt: Agent | move[agt] or wait[agt]}
+    always {all agt: Agent | (move[agt] or wait[agt]) and (agt.position = agt.dest => wait[agt])}
 }
 
 pred tracesMove {
@@ -536,14 +552,14 @@ test expect {
     discreteMapTest: { traces and solved } for discreteMap is sat
     waitingExampleTest: { traces and solved } for waitingExample is sat
     allMovetest: {tracesMove} for allMove is sat
-    tailGatetest: {tracesMove} for tailGate is unsat
-    collisiontest: {tracesMove} for collision is unsat
+    tailGatetest: {tracesMove} for tailGate is sat
+    //collisiontest: {tracesMove} for collision is unsat --for old version of move
     meetUptest: {tracesMove} for meetUp is unsat
     allMovesolvetest: {traces and solved} for allMove is sat
     tailGatesolvetest: {traces and solved} for tailGate is sat
     collisionsolvetest: {traces and solved} for collision is sat
     meetUpsolvetest: {traces and solved} for meetUp is sat
-    mexicanStandOffsolveTest: {traces and solved} for mexicanStandOff is unsat
+    //mexicanStandOffsolveTest: {traces and solved} for mexicanStandOff is unsat -- for old version of move
     mexicanStandOffwaitTest: {tracesWait} for mexicanStandOff is sat
 }
 

@@ -906,6 +906,19 @@ test expect {
 }
 */
 
+inst undirected{
+    Node = Node0 + Node1 + Node2
+    Edge = Edge01 + Edge12 + Edge21
+    edges = Node0->Edge01 + Node1->Edge12 + Node2->Edge21
+    to = Edge01->Node1 + Edge12->Node2 + Edge21->Node1
+
+    Agent = Agent0
+    start = Agent0->Node0
+    dest = Agent0->Node2
+}
+
+// run {} for undirected
+
 /*
 run { 
     traces

@@ -271,22 +271,37 @@ fun getNeighbors[loc: Node]: set Node {
 //     to = Edge01->Atom1 + Edge10->Atom0 + Edge12->Atom2 + Edge21->Atom1 + Edget0->Atom0 + Edget1->Atom1 + Edget2->Atom2
 // }
 
-
 pred move[ag: Agent] {
     -- The Agent Chooses an unoccupied node and traverses to it.
     -- If there are vacant places to move to:
+    -- does not prevent swap conflict
     let neighbors = getNeighbors[ag.position] |  {
-        let openNode = neighbors - Agent.position | {
-        -- Guard: there's an unoccupied place where the agent can move to
-        some neighbors - Agent.position
-        -- The next position should be in an unoccupied Place
-        ag.position' in openNode
+        -- Guard: there's a place where the agent can move to
+        some neighbors
+        -- The agent is in its neighbors
+        ag.position' in neighbors
         -- Specify that only one agent can occupy this place
         after one (ag.position).(~position)
         -- Add the new location into the stops
         ag.stops' = ag.stops + ag.position'
+
+        let originalAg = (ag.position').~position | {
+            some originalAg => originalAg.position' not in ag.position
         }
     }
+
+    // let neighbors = getNeighbors[ag.position] |  {
+    //     let openNode = neighbors - (Agent - ag).position' | {
+    //     -- Guard: there's a place where the agent can move to
+    //     some openNode
+    //     -- The next position should be in an unoccupied Place
+    //     ag.position' in openNode
+    //     -- Specify that only one agent can occupy this place
+    //     after one (ag.position).(~position)
+    //     -- Add the new location into the stops
+    //     ag.stops' = ag.stops + ag.position'
+    //     }
+    // }
 }
 
 pred movetest {
@@ -467,9 +482,9 @@ test expect {
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
 inst oneAgent {
     Node = Node0 + Node1 + Node2
-    Edge = Edge01 + Edge12
-    edges = Node0->Edge01 + Node1->Edge12
-    to = Edge01->Node1 + Edge12->Node2
+    Edge = Edge01 + Edge12 + Edge21
+    edges = Node0->Edge01 + Node1->Edge12 + Node2->Edge21
+    to = Edge01->Node1 + Edge12->Node2 + Edge21->Node1
 
     Agent = Agent0
     start = Agent0->Node0
@@ -557,6 +572,8 @@ inst multiAgent {
     dest = AgentA->Node0 + AgentB->Node1
 }
 
+run { traces and solved } for collide
+
 test expect {
     oneAgentTest: { traces and solved } for oneAgent is sat
     collideTest: { traces and solved } for collide is unsat
@@ -581,7 +598,7 @@ inst structure {
     dest = AgentA->Node0 + AgentB->Node1 + AgentC->Node2
 }
 
-run { traces and solved } for structure
+
 
 /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
                         Property Verification

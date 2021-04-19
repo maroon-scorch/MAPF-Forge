@@ -238,18 +238,6 @@ example initBasicFalse is { not init } for {
     position = Agent0->Atom2 + Agent1->Atom3 + Agent2->Atom0
 }
 
-// example initElectrum is { init } for {
-//     Node = Atom0 + Atom1 + Atom2 + Atom3
-//     Edge = Edge01 + Edge10 + Edge12 + Edge21 + Edge23 + Edge33
-//     edges = Atom0->Edge01 + Atom1->Edge10 + Atom1->Edge12 + Atom2->Edge21 + Atom2->Edge23 + Atom3->Edge33
-//     to = Edge01->Atom1 + Edge10->Atom0 + Edge12->Atom2 + Edge21->Atom1 + Edge23->Atom3 + Edge33->Atom3
-//     Agent = Agent0 + Agent1 + Agent2
-//     start = Agent0->Atom3 + Agent1->Atom1 + Agent2->Atom2
-//     dest = Agent0->Atom3 + Agent1->Atom2 + Agent2->Atom1
-//     position = Agent0->Atom3 + Agent1->Atom3 + Agent2->Atom0
-//     position' = Agent0->Atom3 + Agent1->Atom2 + Atom2->Atom1
-// }
-
 fun getNeighbors[loc: Node]: set Node {
     -- Returns the neighbors of the current node
     loc.edges.to
@@ -289,118 +277,6 @@ pred move[ag: Agent] {
     }
 }
 
-pred movetest {
-    all agt: Agent | move[Agent]
-}
-
-test expect {
-    allMove: {
-        some Atom0, Atom1, Atom2, Atom3, Atom4, Atom5, Atom6: Node | some Agent0, Agent1, Agent2: Agent |
-        some Edge01, Edge10, Edge02, Edge20, Edge13, Edge31, Edge14, Edge41,
-             Edge25, Edge52, Edge26, Edge62, Edge34, Edge43, Edge56, Edge65: Edge | {
-            edges = Atom0->Edge01 + Atom1->Edge10 + Atom0->Edge02 + Atom2->Edge20 + Atom1->Edge13 + Atom3->Edge31 + Atom1->Edge14 +
-                    Atom4->Edge41 + Atom2->Edge25 + Atom5->Edge52 + Atom2->Edge26 + Atom6->Edge62 + Atom3->Edge34 + Atom4->Edge43 +
-                    Atom5->Edge56 + Atom6->Edge65
-            to = Edge01->Atom1 + Edge10->Atom0 + Edge02->Atom2 + Edge20->Atom0 + Edge13->Atom3 + Edge31->Atom1 + Edge14->Atom4 +
-                 Edge41->Atom1 + Edge25->Atom5 + Edge52->Atom2 + Edge26->Atom6 + Edge62->Atom2 + Edge34->Atom4 + Edge43->Atom3 +
-                 Edge56->Atom6 + Edge65->Atom6
-            start = Agent0->Atom0 + Agent1->Atom3 + Agent2->Atom2
-            dest = Agent0->Atom3 + Agent1->Atom4 + Agent2->Atom5
-            position = Agent0->Atom0 + Agent1->Atom3 + Agent2->Atom2
-            position' = Atom0->Atom1 + Agent1->Atom4 + Agent2->Atom5
-            no stops
-            stops' = Agent0->Atom1 + Agent1->Atom4 + Agent2->Atom5
-            
-            movetest
-        }
-    } is sat
-}
-// example allMove is { movetest } for {
-//     Node = Atom0 + Atom1 + Atom2 + Atom3 + Atom4 + Atom5 + Atom6
-//     Edge = Edge01 + Edge10 + Edge02 + Edge20 + Edge13 + Edge31 + Edge14 + Edge41 + Edge25 + Edge52 + Edge26 + Edge62 +
-//            Edge34 + Edge43 + Edge56 + Edge65
-//     edges = Atom0->Edge01 + Atom1->Edge10 + Atom0->Edge02 + Atom2->Edge20 + Atom1->Edge13 + Atom3->Edge31 + Atom1->Edge14 +
-//             Atom4->Edge41 + Atom2->Edge25 + Atom5->Edge52 + Atom2->Edge26 + Atom6->Edge62 + Atom3->Edge34 + Atom4->Edge43 +
-//             Atom5->Edge56 + Atom6->Edge65
-//     to = Edge01->Atom1 + Edge10->Atom0 + Edge02->Atom2 + Edge20->Atom0 + Edge13->Atom3 + Edge31->Atom1 + Edge14->Atom4 +
-//          Edge41->Atom1 + Edge25->Atom5 + Edge52->Atom2 + Edge26->Atom6 + Edge62->Atom2 + Edge34->Atom4 + Edge43->Atom3 +
-//          Edge56->Atom6 + Edge65->Atom6
-//     Agent = Agent0 + Agent1 + Agent2
-//     start = Agent0->Atom0 + Agent1->Atom3 + Agent2->Atom2
-//     dest = Agent0->Atom3 + Agent1->Atom4 + Agent2->Atom5
-//     position = Agent0->Atom0 + Agent1->Atom3 + Agent2->Atom2
-//     position' = Agent0->Atom1 + Agent1->Atom4 + Agent2->Atom5
-//     stops = none
-//     stops' = Agent0->Atom1 + Agent1->Atom4 + Agent2->Atom5
-// }
-
-// example noStops is { not movetest } for {
-//     Node = Atom0 + Atom1 + Atom2 + Atom3 + Atom4 + Atom5 + Atom6
-//     Edge = Edge01 + Edge10 + Edge02 + Edge20 + Edge13 + Edge31 + Edge14 + Edge41 + Edge25 + Edge52 + Edge26 + Edge62 +
-//            Edge34 + Edge43 + Edge56 + Edge65
-//     edges = Atom0->Edge01 + Atom1->Edge10 + Atom0->Edge02 + Atom2->Edge20 + Atom1->Edge13 + Atom3->Edge31 + Atom1->Edge14 +
-//             Atom4->Edge41 + Atom2->Edge25 + Atom5->Edge52 + Atom2->Edge26 + Atom6->Edge62 + Atom3->Edge34 + Atom4->Edge43 +
-//             Atom5->Edge56 + Atom6->Edge65
-//     to = Edge01->Atom1 + Edge10->Atom0 + Edge02->Atom2 + Edge20->Atom0 + Edge13->Atom3 + Edge31->Atom1 + Edge14->Atom4 +
-//          Edge41->Atom1 + Edge25->Atom5 + Edge52->Atom2 + Edge26->Atom6 + Edge62->Atom2 + Edge34->Atom4 + Edge43->Atom3 +
-//          Edge56->Atom6 + Edge65->Atom6
-//     Agent = Agent0 + Agent1 + Agent2
-//     start = Agent0->Atom0 + Agent1->Atom3 + Agent2->Atom2
-//     dest = Agent0->Atom3 + Agent1->Atom4 + Agent2->Atom5
-//     position = Agent0->Atom0 + Agent1->Atom3 + Agent2->Atom2
-//     position' = Atom0->Atom1 + Agent1->Atom4 + Agent2->Atom5
-//     stops = none
-//     stops' = none
-// }
-
-// example tailGate is { not movetest } for {
-//     Node = Atom0 + Atom1 + Atom2 + Atom3 + Atom4 + Atom5 + Atom6
-//     Edge = Edge01 + Edge10 + Edge02 + Edge20 + Edge13 + Edge31 + Edge14 + Edge41 + Edge25 + Edge52 + Edge26 + Edge62
-//     edges = Atom0->Edge01 + Atom1->Edge10 + Atom0->Edge02 + Atom2->Edge20 + Atom1->Edge13 + Atom3->Edge31 + Atom1->Edge14 +
-//             Atom4->Edge41 + Atom2->Edge25 + Atom5->Edge52 + Atom2->Edge26 + Atom6->Edge62
-//     to = Edge01->Atom1 + Edge10->Atom0 + Edge02->Atom2 + Edge20->Atom0 + Edge13->Atom3 + Edge31->Atom1 + Edge14->Atom4 +
-//          Edge41->Atom1 + Edge25->Atom5 + Edge52->Atom2 + Edge26->Atom6 + Edge62->Atom2
-//     Agent = Agent0 + Agent1 + Agent2
-//     start = Agent0->Atom0 + Agent1->Atom1 + Agent2->Atom2
-//     dest = Agent0->Atom3 + Agent1->Atom4 + Agent2->Atom5
-//     position = Agent0->Atom0 + Agent1->Atom1 + Agent2->Atom2
-//     position' = Atom0->Atom1 + Agent1->Atom4 + Agent2->Atom5
-//     stops = none
-//     stops' = Agent0->Atom1 + Agent1->Atom4 + Agent2->Atom5
-// }
-
-// example collision is { not movetest } for {
-//     Node = Atom0 + Atom1 + Atom2 + Atom3 + Atom4 + Atom5 + Atom6
-//     Edge = Edge01 + Edge10 + Edge02 + Edge20 + Edge13 + Edge31 + Edge14 + Edge41 + Edge25 + Edge52 + Edge26 + Edge62
-//     edges = Atom0->Edge01 + Atom1->Edge10 + Atom0->Edge02 + Atom2->Edge20 + Atom1->Edge13 + Atom3->Edge31 + Atom1->Edge14 +
-//             Atom4->Edge41 + Atom2->Edge25 + Atom5->Edge52 + Atom2->Edge26 + Atom6->Edge62
-//     to = Edge01->Atom1 + Edge10->Atom0 + Edge02->Atom2 + Edge20->Atom0 + Edge13->Atom3 + Edge31->Atom1 + Edge14->Atom4 +
-//          Edge41->Atom1 + Edge25->Atom5 + Edge52->Atom2 + Edge26->Atom6 + Edge62->Atom2
-//     Agent = Agent0 + Agent1 + Agent2
-//     start = Agent0->Atom0 + Agent1->Atom1 + Agent2->Atom2
-//     dest = Agent0->Atom3 + Agent1->Atom0 + Agent2->Atom5
-//     position = Agent0->Atom0 + Agent1->Atom1 + Agent2->Atom2
-//     position' = Atom0->Atom1 + Agent1->Atom0 + Agent2->Atom5
-//     stops = none
-//     stops' = Agent0->Atom1 + Agent1->Atom0 + Agent2->Atom5
-// }
-
-// example meetUp is { not movetest } for {
-//     Node = Atom0 + Atom1 + Atom2 + Atom3 + Atom4 + Atom5 + Atom6
-//     Edge = Edge01 + Edge10 + Edge02 + Edge20 + Edge13 + Edge31 + Edge14 + Edge41 + Edge25 + Edge52 + Edge26 + Edge62
-//     edges = Atom0->Edge01 + Atom1->Edge10 + Atom0->Edge02 + Atom2->Edge20 + Atom1->Edge13 + Atom3->Edge31 + Atom1->Edge14 +
-//             Atom4->Edge41 + Atom2->Edge25 + Atom5->Edge52 + Atom2->Edge26 + Atom6->Edge62
-//     to = Edge01->Atom1 + Edge10->Atom0 + Edge02->Atom2 + Edge20->Atom0 + Edge13->Atom3 + Edge31->Atom1 + Edge14->Atom4 +
-//          Edge41->Atom1 + Edge25->Atom5 + Edge52->Atom2 + Edge26->Atom6 + Edge62->Atom2
-//     Agent = Agent0 + Agent1 + Agent2
-//     start = Agent0->Atom3 + Agent1->Atom4 + Agent2->Atom2
-//     dest = Agent0->Atom0 + Agent1->Atom1 + Agent2->Atom5
-//     position = Agent0->Atom3 + Agent1->Atom4 + Agent2->Atom2
-//     position' = Atom0->Atom1 + Agent1->Atom1 + Agent2->Atom5
-//     stops = none
-//     stops' = Agent0->Atom1 + Agent1->Atom1 + Agent2->Atom5
-// }
-
 pred wait[ag: Agent] {
     -- The Agent waits for the turn.
     -- Guard: Waiting at the destination is just stopping
@@ -426,6 +302,20 @@ pred traces {
 	init
 	-- Something is always happening
     always {all agt: Agent | move[agt] or wait[agt]}
+}
+
+pred tracesMove {
+    preConditions
+	init
+	-- Something is always happening
+    always {all agt: Agent | move[agt]}
+}
+
+pred tracesWait {
+    preConditions
+	init
+	-- Something is always happening
+    always {all agt: Agent | wait[agt]}
 }
 
 /*
@@ -463,7 +353,6 @@ test expect {
   hasSolution: {traces and solved} is sat
 }
 
-<<<<<<< HEAD
 // Simple Example for Solver
 inst structure {
     Node = NodeA + NodeB + NodeC + Node0 + Node1 + Node2
@@ -483,8 +372,6 @@ inst structure {
 // }
 
 
-=======
->>>>>>> caf10c2a55200cb30910b7cdc031e3f5c8315b4c
 /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
                                 Traces Test Instances
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
@@ -580,6 +467,67 @@ inst multiAgent {
     dest = AgentA->Node0 + AgentB->Node1
 }
 
+inst allMove {
+    Node = Atom0 + Atom1 + Atom2 + Atom3 + Atom4 + Atom5 + Atom6
+    Edge = Edge01 + Edge10 + Edge02 + Edge20 + Edge13 + Edge31 + Edge14 + Edge41 + Edge25 + Edge52 + Edge26 + Edge62 +
+           Edge34 + Edge43 + Edge56 + Edge65
+    edges = Atom0->Edge01 + Atom1->Edge10 + Atom0->Edge02 + Atom2->Edge20 + Atom1->Edge13 + Atom3->Edge31 + Atom1->Edge14 +
+            Atom4->Edge41 + Atom2->Edge25 + Atom5->Edge52 + Atom2->Edge26 + Atom6->Edge62 + Atom3->Edge34 + Atom4->Edge43 +
+            Atom5->Edge56 + Atom6->Edge65
+    to = Edge01->Atom1 + Edge10->Atom0 + Edge02->Atom2 + Edge20->Atom0 + Edge13->Atom3 + Edge31->Atom1 + Edge14->Atom4 +
+         Edge41->Atom1 + Edge25->Atom5 + Edge52->Atom2 + Edge26->Atom6 + Edge62->Atom2 + Edge34->Atom4 + Edge43->Atom3 +
+         Edge56->Atom6 + Edge65->Atom6
+    Agent = Agent0 + Agent1 + Agent2
+    start = Agent0->Atom0 + Agent1->Atom3 + Agent2->Atom2
+    dest = Agent0->Atom3 + Agent1->Atom4 + Agent2->Atom5
+}
+
+inst tailGate {
+    Node = Atom0 + Atom1 + Atom2 + Atom3 + Atom4 + Atom5 + Atom6
+    Edge = Edge01 + Edge10 + Edge02 + Edge20 + Edge13 + Edge31 + Edge14 + Edge41 + Edge25 + Edge52 + Edge26 + Edge62
+    edges = Atom0->Edge01 + Atom1->Edge10 + Atom0->Edge02 + Atom2->Edge20 + Atom1->Edge13 + Atom3->Edge31 + Atom1->Edge14 +
+            Atom4->Edge41 + Atom2->Edge25 + Atom5->Edge52 + Atom2->Edge26 + Atom6->Edge62
+    to = Edge01->Atom1 + Edge10->Atom0 + Edge02->Atom2 + Edge20->Atom0 + Edge13->Atom3 + Edge31->Atom1 + Edge14->Atom4 +
+         Edge41->Atom1 + Edge25->Atom5 + Edge52->Atom2 + Edge26->Atom6 + Edge62->Atom2
+    Agent = Agent0 + Agent1 + Agent2
+    start = Agent0->Atom0 + Agent1->Atom1 + Agent2->Atom2
+    dest = Agent0->Atom3 + Agent1->Atom4 + Agent2->Atom5
+}
+
+inst collision {
+    Node = Atom0 + Atom1 + Atom2 + Atom3 + Atom4 + Atom5 + Atom6
+    Edge = Edge01 + Edge10 + Edge02 + Edge20 + Edge13 + Edge31 + Edge14 + Edge41 + Edge25 + Edge52 + Edge26 + Edge62
+    edges = Atom0->Edge01 + Atom1->Edge10 + Atom0->Edge02 + Atom2->Edge20 + Atom1->Edge13 + Atom3->Edge31 + Atom1->Edge14 +
+            Atom4->Edge41 + Atom2->Edge25 + Atom5->Edge52 + Atom2->Edge26 + Atom6->Edge62
+    to = Edge01->Atom1 + Edge10->Atom0 + Edge02->Atom2 + Edge20->Atom0 + Edge13->Atom3 + Edge31->Atom1 + Edge14->Atom4 +
+         Edge41->Atom1 + Edge25->Atom5 + Edge52->Atom2 + Edge26->Atom6 + Edge62->Atom2
+    Agent = Agent0 + Agent1 + Agent2
+    start = Agent0->Atom0 + Agent1->Atom1 + Agent2->Atom2
+    dest = Agent0->Atom3 + Agent1->Atom0 + Agent2->Atom5
+}
+
+inst meetUp {
+    Node = Atom0 + Atom1 + Atom2 + Atom3 + Atom4 + Atom5 + Atom6
+    Edge = Edge01 + Edge10 + Edge02 + Edge20 + Edge13 + Edge31 + Edge14 + Edge41 + Edge25 + Edge52 + Edge26 + Edge62
+    edges = Atom0->Edge01 + Atom1->Edge10 + Atom0->Edge02 + Atom2->Edge20 + Atom1->Edge13 + Atom3->Edge31 + Atom1->Edge14 +
+            Atom4->Edge41 + Atom2->Edge25 + Atom5->Edge52 + Atom2->Edge26 + Atom6->Edge62
+    to = Edge01->Atom1 + Edge10->Atom0 + Edge02->Atom2 + Edge20->Atom0 + Edge13->Atom3 + Edge31->Atom1 + Edge14->Atom4 +
+         Edge41->Atom1 + Edge25->Atom5 + Edge52->Atom2 + Edge26->Atom6 + Edge62->Atom2
+    Agent = Agent0 + Agent1 + Agent2
+    start = Agent0->Atom3 + Agent1->Atom4 + Agent2->Atom2
+    dest = Agent0->Atom0 + Agent1->Atom1 + Agent2->Atom5
+}
+
+inst mexicanStandOff {
+    Node = Atom0 + Atom1 + Atom2
+    Edge = Edge01 + Edge10 + Edge20 + Edge02 + Edge21 + Edge12
+    edges = Atom0->Edge01 + Atom1->Edge10 + Atom0->Edge02 + Atom2->Edge20 + Atom2->Edge21 + Atom1->Edge12
+    to =    Edge01->Atom1 + Edge10->Atom0 + Edge02->Atom2 + Edge20->Atom0 + Edge21->Atom1 + Edge12->Atom2
+    Agent = Agent0 + Agent1 + Agent2
+    start = Agent0->Atom0 + Agent1->Atom1 + Agent2->Atom2
+    dest = Agent0->Atom1 + Agent1->Atom2 + Agent2->Atom0
+}
+
 test expect {
     oneAgentTest: { traces and solved } for oneAgent is sat
     collideTest: { traces and solved } for collide is unsat
@@ -587,11 +535,21 @@ test expect {
     notCollideTest: { traces and solved } for notCollide is sat
     discreteMapTest: { traces and solved } for discreteMap is sat
     waitingExampleTest: { traces and solved } for waitingExample is sat
+    allMovetest: {tracesMove} for allMove is sat
+    tailGatetest: {tracesMove} for tailGate is unsat
+    collisiontest: {tracesMove} for collision is unsat
+    meetUptest: {tracesMove} for meetUp is unsat
+    allMovesolvetest: {traces and solved} for allMove is sat
+    tailGatesolvetest: {traces and solved} for tailGate is sat
+    collisionsolvetest: {traces and solved} for collision is sat
+    meetUpsolvetest: {traces and solved} for meetUp is sat
+    mexicanStandOffsolveTest: {traces and solved} for mexicanStandOff is unsat
+    mexicanStandOffwaitTest: {tracesWait} for mexicanStandOff is sat
 }
 
 
 // Simple Example for Solver
-inst structure {
+inst structur {
     Node = NodeA + NodeB + NodeC + Node0 + Node1 + Node2
     Edge = EdgeA0 + EdgeB0 + EdgeC0 + Edge01 + Edge02
     edges = NodeA->EdgeA0 + NodeB->EdgeB0 + NodeC->EdgeC0 +
@@ -604,7 +562,7 @@ inst structure {
     dest = AgentA->Node0 + AgentB->Node1 + AgentC->Node2
 }
 
-run { traces and solved } for structure
+// run { traces and solved } for structur
 
 /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
                         Property Verification
@@ -625,6 +583,8 @@ pred pathSetup {
     // Next Should Only Have One Unique Parent Each
     next.~next in iden
 }
+
+
 
 //Makes sure that each PathElt in a Path is pointing to a directly connected Node from itself
 pred pathIsList[p: Path] {
@@ -653,6 +613,23 @@ example validPath is { pathSetup and pathIsList[Path] } for {
     loc = Pet1->Node0 + Pet2->Node1 -- + Pet3->Node4 
 }
 
+inst looper {
+    -- Setup Structure
+    Node = Node0 + Node1 + Node2 + Node3
+    Edge = Edge01 + Edge12 + Edge23 + Edge31
+    edges = Node0->Edge01 + Node1->Edge12 + Node2->Edge23 + Node3->Edge31
+    to =    Edge01->Node1 + Edge12->Node2 + Edge23->Node3 + Edge31->Node1
+    -- Path:
+    Path = Path0
+    PathElt = Pet1 + Pet2 + Pet3 + Pet4
+    pth = Path0->Pet1 + Path0->Pet2 + Path0->Pet3 + Path0->Pet4
+    next = Pet1->Pet2 + Pet2->Pet3 + Pet3->Pet4
+    loc = Pet1->Node1 + Pet2->Node2 + Pet3->Node3 
+}
+test expect {
+    loopPath: { pathSetup } for looper is unsat
+    loopPath2: { pathSetup and pathIsList[Path] } for looper is unsat
+}
 /*---------------*\
 |    Properties   |
 \*---------------*/
@@ -800,18 +777,10 @@ pred incentivePathFinder {
 	}
 }
 
-<<<<<<< HEAD
 // test expect {
 //     {{ nwfPathFinder => solved } <=> { incentivePathFinder => solved }} is theorem
 //     wellFormedSolution: { not (traces and solved) => not wellFormed  } is theorem
 // }
-=======
-test expect {
-    {{ nwfPathFinder => solved } <=> { incentivePathFinder => solved }} is theorem
-    solutionExists: { nwfPathFinder implies solved } is theorem
-    -- wellFormedSolution: { not (traces and solved) => not wellFormed  } is theorem
-}
->>>>>>> caf10c2a55200cb30910b7cdc031e3f5c8315b4c
 
 // test expect {
 //     { nwfPathFinder implies wellFormed } is theorem

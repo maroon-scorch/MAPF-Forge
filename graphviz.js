@@ -187,7 +187,12 @@ svg = d3.select(svg)
         .attr("dx", "0.3em")
         .style("text-anchor", "middle")
         .style("font-size", "17px")
-        .text(d => d.id);
+        .text(d => d.id)
+        .call(d3.drag()  //sets the event listener for the specified typenames and returns the drag behavior.
+            .on("start", dragstarted) //start - after a new pointer becomes active (on mousedown or touchstart).
+            .on("drag", dragged)      //drag - after an active pointer moves (on mousemove or touchmove).
+            .on("end", dragended)     //end - after an active pointer becomes inactive (on mouseup, touchend or touchcancel).
+         );
     const text2 = text.append("text")
         .attr("fill", "block")
         .attr("dx", "-4em")
@@ -199,7 +204,7 @@ svg = d3.select(svg)
 
     // boot up the simulation
     var simulation = d3.forceSimulation(dataset.nodes)
-    .force('charge', d3.forceManyBody())
+    .force('charge', d3.forceManyBody().strength(-700))
     .force('center', d3.forceCenter(width / 2, height / 2))
     .force("link", d3.forceLink(dataset.links).distance(300).id(function(d){return d.id}))
     .on('tick', ticked);

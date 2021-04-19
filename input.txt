@@ -1,0 +1,16 @@
+6 3
+NodeA Node0
+      1
+NodeB Node0
+      1
+NodeC Node0
+      1
+Node0 Node1
+      1
+Node1 Node2
+      1
+Node2
+
+AgentA NodeA Node0
+AgentB NodeB Node1
+AgentC NodeC Node2

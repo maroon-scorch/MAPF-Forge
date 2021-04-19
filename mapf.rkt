@@ -67,9 +67,8 @@ sig Agent {
     start: one Node,
     dest: one Node, -- For Traveling Salesman, Consider Changing this into set Node?
     var stops: set Node,
-    cumulativeWeight: one Int
+    var cumulativeWeight: one Int
 }
-
 
 //Checks if end is reachable from start
 --used to make sure dest is reachable from start in agent pathfinding
@@ -421,17 +420,6 @@ pred wait[ag: Agent] {
 //     ag.stops' = ag.stops
 // }
 
-//Assures that no two agents every collide (swap positions)
-pred noCollision {
-    always {
-        all agt1, agt2 : Agent | {
-            agt1 != agt2 => {
-                agt1.position != agt2.position
-                not (agt1.position' = agt2.position and agt2.position' = agt1.position)
-            }
-        }
-    }
-}
 --Current traces form that defines states of movement as all agents taking an action per state
 pred traces {
     preConditions
@@ -461,11 +449,6 @@ pred solved {
     all agt: Agent | eventually (agt.position = agt.dest)
 }
 
-// Safety Checking - No Collision has occurred during the process
-test expect {
-    solvedStateHasNoCollision: { traces and solved implies noCollision } is theorem
-}
-
 
 -- "Sanity checking":
 test expect {
@@ -480,6 +463,7 @@ test expect {
   hasSolution: {traces and solved} is sat
 }
 
+<<<<<<< HEAD
 // Simple Example for Solver
 inst structure {
     Node = NodeA + NodeB + NodeC + Node0 + Node1 + Node2
@@ -499,6 +483,8 @@ inst structure {
 // }
 
 
+=======
+>>>>>>> caf10c2a55200cb30910b7cdc031e3f5c8315b4c
 /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
                                 Traces Test Instances
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
@@ -570,6 +556,30 @@ inst collideExample2 {
     dest = AgentA->Node3 + AgentB->Node1
 }
 
+inst multiEdge {
+    Node = Node1 + Node2 + Node3 + Node4
+    Edge = Edge12 + Edge13 + Edge14
+    edges = Node1->Edge12 + Node1->Edge13 + Node1->Edge14
+    to = Edge12->Node2 + Edge13->Node3 + Edge14->Node4
+
+    Agent = AgentA
+    start = AgentA->Node1
+    dest = AgentA->Node4
+}
+
+inst multiAgent {
+    Node = NodeA + NodeB + NodeC + Node0 + Node1
+    Edge = EdgeA0 + EdgeB0 + EdgeC0 + Edge01
+    edges = NodeA->EdgeA0 + NodeB->EdgeB0 + NodeC->EdgeC0 +
+    Node0->Edge01
+    to = EdgeA0->Node0 + EdgeB0->Node0 + EdgeC0->Node0 +
+    Edge01->Node1
+
+    Agent = AgentA + AgentB
+    start = AgentA->NodeA + AgentB->NodeB
+    dest = AgentA->Node0 + AgentB->Node1
+}
+
 test expect {
     oneAgentTest: { traces and solved } for oneAgent is sat
     collideTest: { traces and solved } for collide is unsat
@@ -578,6 +588,23 @@ test expect {
     discreteMapTest: { traces and solved } for discreteMap is sat
     waitingExampleTest: { traces and solved } for waitingExample is sat
 }
+
+
+// Simple Example for Solver
+inst structure {
+    Node = NodeA + NodeB + NodeC + Node0 + Node1 + Node2
+    Edge = EdgeA0 + EdgeB0 + EdgeC0 + Edge01 + Edge02
+    edges = NodeA->EdgeA0 + NodeB->EdgeB0 + NodeC->EdgeC0 +
+    Node0->Edge01 + Node0->Edge02
+    to = EdgeA0->Node0 + EdgeB0->Node0 + EdgeC0->Node0 +
+    Edge01->Node1 + Edge02->Node2
+
+    Agent = AgentA + AgentB + AgentC
+    start = AgentA->NodeA + AgentB->NodeB + AgentC->NodeC
+    dest = AgentA->Node0 + AgentB->Node1 + AgentC->Node2
+}
+
+run { traces and solved } for structure
 
 /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
                         Property Verification
@@ -629,6 +656,41 @@ example validPath is { pathSetup and pathIsList[Path] } for {
 /*---------------*\
 |    Properties   |
 \*---------------*/
+// Invariant Checking:
+pred noCollision {
+    -- Assures that no two agents never collide 
+    always {
+        all agt1, agt2 : Agent | {
+            agt1 != agt2 => {
+                -- No Agent Occupies the Same Spot
+                agt1.position != agt2.position
+                -- No Agent Swaps Position during the Process (they collide on the edge)
+                not (agt1.position' = agt2.position and agt2.position' = agt1.position)
+            }
+        }
+    }
+}
+
+// Safety Checking - No Collision has occurred during the process
+test expect {
+    solvedStateHasNoCollision: { traces and solved implies noCollision } is theorem
+}
+
+pred jumping {
+    -- The Agent Skips a Node and "Jumps"
+    eventually { 
+        some agt: Agent | {
+            after {agt.position} not in agt.position + getNeighbors[agt.position]
+        }
+    }
+}
+
+// Invariant - The Agents always trace the graph
+test expect {
+    tracesDoesNotJump: { traces and jumping } is unsat
+    solvedStateDoesNotJump: { traces and solved and jumping } is unsat
+}
+
 pred wellFormed {
     -- The graph is "well-formed" for MAPF if for all agent 1, 2,
     -- there's a path from start of 1 to end of 1 that does not
@@ -651,7 +713,12 @@ test expect {
     wellFormedPositive: { wellFormed } for discreteMap is sat
     wellFormedNegative: { wellFormed } for waitingExample is unsat
     wfPathIncludeStartEnd: { wellFormed } for notCollide is unsat
+    -- wellFormed implies { traces and solved is sat } is theorem
+   --  { wellFormed and traces implies { some Solution } } for exactly one Solution is theorem
 }
+
+-- separate out the concern
+-- Create a run in forge core that has wellformed, and just check if those are sat in wellformed and traces
 
 /*
 //Statically checks if a mapf is solvable
@@ -733,10 +800,18 @@ pred incentivePathFinder {
 	}
 }
 
+<<<<<<< HEAD
 // test expect {
 //     {{ nwfPathFinder => solved } <=> { incentivePathFinder => solved }} is theorem
 //     wellFormedSolution: { not (traces and solved) => not wellFormed  } is theorem
 // }
+=======
+test expect {
+    {{ nwfPathFinder => solved } <=> { incentivePathFinder => solved }} is theorem
+    solutionExists: { nwfPathFinder implies solved } is theorem
+    -- wellFormedSolution: { not (traces and solved) => not wellFormed  } is theorem
+}
+>>>>>>> caf10c2a55200cb30910b7cdc031e3f5c8315b4c
 
 // test expect {
 //     { nwfPathFinder implies wellFormed } is theorem
@@ -784,7 +859,11 @@ pred liveLocked {
     }
 }
 
-pred nsteps[num: Index] {
+-- if it's moving the whole time and could reach destination
+-- deadlock can't reach destination
+-- livelock can reach destination, but agent waits forever and never goes there
+
+pred nsteps[num: Int] {
     -- a trace can be completed in n time intervals.
 }
 

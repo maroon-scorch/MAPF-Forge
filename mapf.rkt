@@ -584,8 +584,6 @@ pred pathSetup {
     next.~next in iden
 }
 
-
-
 //Makes sure that each PathElt in a Path is pointing to a directly connected Node from itself
 pred pathIsList[p: Path] {
     // Transition Should Be Connected

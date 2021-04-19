@@ -1,16 +1,26 @@
-6 3
-NodeA Node0
+11 3
+Node1 Node2 Node4 Node6 Node9 Node8 Node11
+      1     1     1     1     1     1
+Node2 Node1 Node6 Node7
+      1     1     1
+Node3 Node9
       1
-NodeB Node0
+Node4 Node1 Node10
+      1     1
+Node5 Node7
       1
-NodeC Node0
+Node6 Node1 Node2
+      1     1
+Node7 Node5 Node2 Node11
+      1     1     1
+Node8 Node1
       1
-Node0 Node1
-      1
-Node1 Node2
-      1
-Node2
-
-AgentA NodeA Node0
-AgentB NodeB Node1
-AgentC NodeC Node2
+Node9 Node3 Node1
+      1     1
+Node10 Node11 Node4
+       1      1
+Node11 Node10 Node7
+       1      1
+AgentA Node5 Node8
+AgentB Node10 Node2
+AgentC Node3 Node4

@@ -1,4 +1,4 @@
-#lang racket
+#lang forge/core
 
 (require (for-syntax racket))
 (provide to-inst)

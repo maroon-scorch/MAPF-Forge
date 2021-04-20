@@ -50,3 +50,6 @@ NodeEmpty
 ```
 Would be a valid line.
 All Nodes with blank lines should also be the last Nodes in the file specified. For more, see example/blank-line.txt.
+
+## Important Notice:
+Thomas, who offered to help us figure out integrating our Forge files to forge/core, aided us in letting us write mapf_solver.rkt while providing support as a TA. The I/O parsing of text files to forge instances was directly provided by Thomas who believed that racket macro was too cumbersome and irrelevant to what we are doing to make us learn. Thank you Thomas!

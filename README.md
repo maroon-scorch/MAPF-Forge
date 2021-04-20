@@ -15,6 +15,7 @@ Multi-Agent Pathfinding is a novel concept generated during the cusp of deep rei
     - We determined that forge was not especially well suited to modeling modeling optimality problems. However using forge core allowed us to determine a temporally optimal path for the agents, but we were not able to determine a spatially optimal path. Due to this nuance, the goal that we orignally proposed was slightly altered. We still achieved multi-agent pathfinding, but not necessarily in the way we had envisioned. 
 - How should we understand an instance of your model and what your custom visualization shows?
     - Instances are a collection of Nodes, Edges, and Agents. Agents point to the nodes they are currently "on" (indicated by their position relation). The sterling graph is pretty unintelligible, so we created a much more readable graph in our visualization. Each agents hasa color, and the node that the agent is on is colored in that color. Each agents destination node is outlined in the agent's color. 
+![alt text](image/graphic.png "Title")
 ## Files:
 ### example
 This is the folder that houses example input files that our MAPF Solver would take.

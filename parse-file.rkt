@@ -96,6 +96,6 @@
     [(to-inst-command-line)
      (let ([args (current-command-line-arguments)])
        (unless (>= (vector-length args) 1)
-         (raise "Usage: racket invoke_mapf.rkt <input_file>"))
+         (raise "Usage: racket mapf_solver.rkt <path_to_file>"))
        (let ([filename (vector-ref args 0)])
          (datum->syntax stx `(to-inst ,filename))))]))

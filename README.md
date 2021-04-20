@@ -17,3 +17,33 @@ To run the solver:
 ```
 racket mapf_solver.rkt <path_to_file>
 ```
+The solver takes in a text file of the following input specification:
+- The first line of the file should contain two numbers separated by a space, the first being the number of nodes, and the second being the number of Agents
+- For each Node, they are represented as:
+```
+<Name of Node> <...Neighbor of Node, each separated by a space>
+       <...Weight of the Edge to each respective Node above, each separated by a space>
+```
+- For each Agent, they are represented as:
+```
+<Name of Agent> <Starting Node of Agent> <Destination Node of Agent>
+```
+An example file looks like:
+```
+6 3
+NodeA Node0 Node1
+      1 2
+NodeB Node0
+      1
+NodeC Node0
+      1
+Node0 Node1
+      1
+Node1 Node2
+      1
+Node2 Node1
+      1
+AgentA NodeA Node0
+AgentB NodeB Node1
+AgentC NodeC Node2
+```

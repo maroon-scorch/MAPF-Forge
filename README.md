@@ -30,20 +30,23 @@ The solver takes in a text file of the following input specification:
 ```
 An example file looks like:
 ```
-6 3
-NodeA Node0 Node1
+4 2
+Node0 Node3 Node1
       1 2
-NodeB Node0
-      1
-NodeC Node0
-      1
-Node0 Node1
-      1
 Node1 Node2
       1
 Node2 Node1
       1
-AgentA NodeA Node0
-AgentB NodeB Node1
-AgentC NodeC Node2
+Node3 Node1
+      1
+AgentA Node0 Node3
+AgentB Node1 Node2
 ```
+### Note:
+To make a Node with zero edges extending out, you need to leave a blank line afterwards, so, ex:
+```
+NodeEmpty
+
+```
+Would be a valid line.
+All Nodes with blank lines should also be the last Nodes in the file specified. For more, see example/blank-line.txt.

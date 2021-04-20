@@ -6,7 +6,7 @@ Multi-Agent Pathfinding is a novel concept generated during the cusp of deep rei
 <br /><br />
 Solving a pathfinding problem is rather trivial when number of agent is only one, it is quite literally just a reachability problem. However, the question gets increasingly complicated when multiple agents and conditions are involved. In addition to having to handle multiple agents, the requirement vary so that no Agents will follow each other, none will collide, etc. While the area is new, there has been some proposed solutions to resolve the issue. However, what's more surprising is that there are constraint based solvers that could resolve these MAPF problems without needing to figure out how to solve the problem directly (1). The reason why this is useful is because many SAT solvers are optimized enough so that they could retrieve the answers in a time that fares well relative to even other methods (1).
 <br /><br />
-In our project, we modeled the process of Multiagent Pathfinding in Forge and <b>created a MAPF Solver</b> that produces a solution (if it exists) to the MAPF problem with the shortest time steps. In addition, we have also explored some properties that will be verified in our Forge file.
+In our project, we modeled the process of Multiagent Pathfinding in Forge and <b>implemented a MAPF Solver</b> that produces a solution (if it exists) to the MAPF problem with the shortest time steps. In addition, we have also explored some properties that will be verified in our Forge file.
 
 ## Design Questions:
 - What tradeoffs did you make in choosing your representation? What else did you try that didn’t work as well?

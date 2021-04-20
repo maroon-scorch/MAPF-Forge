@@ -262,7 +262,7 @@ fun getNeighbors[loc: Node]: set Node {
 pred move[ag: Agent] {
     -- The Agent Chooses an unoccupied node and traverses to it.
     -- If there are vacant places to move to:
-    
+
     --This version allows agents to take the previously held position of a different agent
     let neighbors = getNeighbors[ag.position] |  {
         -- Guard: there's an unoccupied place where the agent can move to
@@ -649,6 +649,48 @@ test expect {
     solvedStateDoesNotJump: { traces and solved and jumping } is unsat
 }
 
+//deadlock: Can't move
+//livelock: Trapped in a cycle but still moving
+//If any agent ever doesn't reach its destination, that means that it encountered either a deadlock or livelock on its journey.
+//Therefore a predicate constraining that agents reach their destination is constraining that agents don't encounter a lock
+pred isNotConnected[nodeSet : Node, pos : Node, destination : Node] {
+    let edgesAvailable = Edge - (nodeSet.edges + nodeSet.~to) | {
+        destination not in pos + pos.^((Node->edgesAvailable & edges).(edgesAvailable->Node & to))
+    }
+}
+
+
+pred isBlocked[agt : Agent] {
+    let blockAgts = Agent - agt | {
+        some blockAgts
+        isNotConnected[Node - blockAgts, agt.position, agt.dest]
+    }
+}
+
+pred deadLocked {
+    traces
+    -- The state can't be deadlocked if there's no agent
+    some Agent
+    eventually { always { all agt : Agent | {
+        isBlocked[agt]
+    }}}
+}
+
+pred liveLocked {
+    traces
+    eventually { always {
+        some agt: Agent | agt.position != agt.dest
+    }}
+}
+
+test expect {
+    deadlockVacuity: { deadLocked } is sat
+    livelockVacuity: { liveLocked } is sat
+    deadLockedUnsolvable: { deadLocked => not (traces and solved) } is theorem
+    liveLockedUnsolvable: { liveLocked => not (traces and solved) } is theorem
+    solvedDoesNotLock: {(traces and solved) => not (deadLocked or liveLocked)} is theorem
+}
+
 pred wellFormed {
     -- The graph is "well-formed" for MAPF if for all agent 1, 2,
     -- there's a path from start of 1 to end of 1 that does not
@@ -664,6 +706,11 @@ pred wellFormed {
     }
 
     -- does wellFormed => solution is always guaranteed
+}
+
+
+check {
+    { wellFormed } implies not deadLocked 
 }
 
 //TODO::Create new more wellFormed specific instances/tests
@@ -784,31 +831,6 @@ pred slidable {
     -- (probably not, try limiting number of agents)
 }
 
-//deadlock: Can't move
-//livelock: Trapped in a cycle but still moving
-//If any agent ever doesn't reach its destination, that means that it encountered either a deadlock or livelock on its journey.
-//Therefore a predicate constraining that agents reach their destination is constraining that agents don't encounter a lock
-
-pred deadLocked {
-    traces
-    pathSetup
-    all agt : Agent | {
-        no connectedPath : Path | {
-            pathIsList[connectedPath]
-            all agt2: Agent - agt | {
-                agt2.position not in connectedPath.pth.loc
-            }
-        }
-    }       
-}
-
-pred liveLocked {
-    traces
-    not deadLocked
-    always {
-        some agt: Agent | agt.position != agt.dest
-    }
-}
 
 -- if it's moving the whole time and could reach destination
 -- deadlock can't reach destination

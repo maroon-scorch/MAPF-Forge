@@ -4,7 +4,9 @@
 ## Introduction:
 Multi-Agent Pathfinding is a novel concept generated during the cusp of deep reinforcement learning. While having multiple agents navigating on the same graph is novel enough in its potentials for parallelization, the true novelty of Multi-agent Pathfinding comes in its key restriction - that agents following the paths may not collide with one another. With that seemingly tiny change, Multi-Agent Pathfinding has arisen with major applications in topics such as factory robotics, simulated interactive modelings in video games, and more, etc.
 <br />
-Solving a pathfinding problem is rather trivial when number of agent is only one, it is quite literally just a reachability problem. However, the question gets increasingly complicated when multiple agents and conditions are involved. In addition to having to handle multiple agents, the requirement vary so that no Agents will follow each other, none will collide, etc. While the area is new, there has been some proposed solutions to resolve the issue
+Solving a pathfinding problem is rather trivial when number of agent is only one, it is quite literally just a reachability problem. However, the question gets increasingly complicated when multiple agents and conditions are involved. In addition to having to handle multiple agents, the requirement vary so that no Agents will follow each other, none will collide, etc. While the area is new, there has been some proposed solutions to resolve the issue. However, what's more surprising is that there are constraint based solvers that could resolve these MAPF problems without needing to figure out how to solve the problem directly (1). The reason why this is useful is because many SAT solvers are optimized enough so that they could retrieve the answers in a time that fares well relative to even other methods (1).
+<br />
+In our project, we modeled the process of Multiagent Pathfinding in Forge and created a MAPF Solver that produces a solution (if it exists) to the MAPF problem with the shortest time steps. In addition, we have also explored some properties that will be verified in our Forge file.
 
 ## Design Questions:
 - What tradeoffs did you make in choosing your representation? What else did you try that didn’t work as well?
@@ -75,4 +77,4 @@ All Nodes with blank lines should also be the last Nodes in the file specified. 
 ## Important Notice:
 Thomas, who offered to help us figure out integrating our Forge files to forge/core, aided us in letting us write mapf_solver.rkt while providing support as a TA. The I/O parsing of text files (parse-file.rkt) to forge instances was directly provided by Thomas who believed that racket macro was too cumbersome and irrelevant to what we are doing to make us learn. Thank you Thomas!
 ## References:
-[1.](https://arxiv.org/ftp/arxiv/papers/1610/1610.05452.pdf) Makespan Optimal Solving of Cooperative Path-Finding via Reductions to Propositional Satisfiability by Pavel Surynek.
+[( 1. )](https://arxiv.org/ftp/arxiv/papers/1610/1610.05452.pdf) Makespan Optimal Solving of Cooperative Path-Finding via Reductions to Propositional Satisfiability by Pavel Surynek.

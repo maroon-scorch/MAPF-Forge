@@ -6,14 +6,9 @@
 (require "parse-file.rkt")
 ; (require "instances.rkt")
 ; (option 'max-tracelength n)
-(define args (current-command-line-arguments))
-(print args)
-;;; (unless (not (= 1 (vector-length args)))
-;;;     raise("Please pass in one argument"))
-(define filepath (vector-ref args 0))
-(print 'filepath)
 
-(define problem (to-inst filepath))
+; (define problem (to-inst "input.txt"))
+(define problem (to-inst-command-line))
 
 (define answers (for/last ([n (in-naturals 1)]) 
     (set-option! 'max_tracelength n)

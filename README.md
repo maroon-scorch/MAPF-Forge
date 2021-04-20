@@ -12,6 +12,20 @@
 - How should we understand an instance of your model and what your custom visualization shows?
     - Instances are a collection of Nodes, Edges, and Agents. Agents point to the nodes they are currently "on" (indicated by their position relation). The sterling graph is pretty unintelligible, so we created a much more readable graph in our visualization. Each agents hasa color, and the node that the agent is on is colored in that color. Each agents destination node is outlined in the agent's color. 
 ## Files:
+### example
+This is the folder that houses example input files that our MAPF Solver would take.
+### collaborators
+The list of collaborators we have for our Final Project.
+### graphviz.js
+The Visualizer of Our Project
+### input.txt
+A complicated example we will show during our Demo!
+### mapf.rkt
+The core Forge File we have that models the MAPF Problem and verifies properties of them.
+### mapf_solver.rkt:
+The MAPF Solver built on the basis of mapf.rkt
+### parse-file.rkt
+Converts the text file to Forge Instances
 
 ## How to Run Solver:
 To run the solver:
@@ -53,4 +67,4 @@ Would be a valid line.
 All Nodes with blank lines should also be the last Nodes in the file specified. For more, see example/blank-line.txt.
 
 ## Important Notice:
-Thomas, who offered to help us figure out integrating our Forge files to forge/core, aided us in letting us write mapf_solver.rkt while providing support as a TA. The I/O parsing of text files to forge instances was directly provided by Thomas who believed that racket macro was too cumbersome and irrelevant to what we are doing to make us learn. Thank you Thomas!
+Thomas, who offered to help us figure out integrating our Forge files to forge/core, aided us in letting us write mapf_solver.rkt while providing support as a TA. The I/O parsing of text files (parse-file.rkt) to forge instances was directly provided by Thomas who believed that racket macro was too cumbersome and irrelevant to what we are doing to make us learn. Thank you Thomas!

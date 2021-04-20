@@ -1,7 +1,8 @@
 #lang forge/core
+;;; IO Handling Provided by Thomas
 
 (require (for-syntax racket))
-(provide to-inst)
+(provide to-inst to-inst-command-line)
 
 (begin-for-syntax
     (struct Node (name))
@@ -27,7 +28,6 @@
             (for/list ([n (in-range num-agents)])
             (define parts (string-split (read-line)))
             (apply Agent parts)))
-        (println edges)
         (Data nodes edges agents)))))
 
 (define-syntax (to-inst stx)
@@ -87,7 +87,15 @@
                                     [agent (Data-agents data)])
                             `(+ ,body (-> ,(string->symbol (Agent-name agent))
                                         ,(string->symbol (Agent-end agent))))))))
-        (println body)
         #`(let () (inst temp-inst #,@(datum->syntax stx body)) temp-inst)
      )
      ]))
+
+(define-syntax (to-inst-command-line stx)
+  (syntax-case stx ()
+    [(to-inst-command-line)
+     (let ([args (current-command-line-arguments)])
+       (unless (>= (vector-length args) 1)
+         (raise "Usage: racket invoke_mapf.rkt <input_file>"))
+       (let ([filename (vector-ref args 0)])
+         (datum->syntax stx `(to-inst ,filename))))]))

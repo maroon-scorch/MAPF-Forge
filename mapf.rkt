@@ -59,15 +59,13 @@ go from its start to its destination.
 @start - The starting node of the Agent
 @dest - The ending node of the Agent
 @stops - keeps track of the nodes the Agent has traveled
-@cumulative-weight - keeps track of the weight of the path
 --------------------------------------
 */
 sig Agent {
     var position: one Node,
     start: one Node,
     dest: one Node, -- For Traveling Salesman, Consider Changing this into set Node?
-    var stops: set Node,
-    var cumulativeWeight: one Int
+    var stops: set Node
 }
 
 //Checks if end is reachable from start
@@ -79,6 +77,7 @@ pred reachable[start: Node, end: Node] {
 pred reachableTestpred {
     all agt: Agent | reachable [agt.start, agt.dest]
 }
+
 example reachableEnds is { reachableTestpred } for {
     Node = Atom0 + Atom1 + Atom2 + Atom3
     Edge = Edge01 + Edge12 + Edge23
@@ -270,7 +269,12 @@ pred move[ag: Agent] {
         -- The next position should be in an unoccupied Place
         ag.position' in neighbors
         --agents cant swap positions, that'd be a collision
-        all agt: (Agent - ag) | not ((agt.position' = ag.position) and (ag.position' = agt.position))
+        -- all agt: (Agent - ag) | not ((agt.position' = ag.position) and (ag.position' = agt.position))
+        let afterPos = ag.position' | {
+            let originalAg = afterPos.~position | {
+                originalAg.(position') != ag.position
+            }
+        }
         -- Specify that only one agent can occupy this place
         after one (ag.position).(~position)
         -- Add the new location into the stops
@@ -355,21 +359,8 @@ test expect {
 }
 
 // Simple Example for Solver
-inst structure {
-    Node = NodeA + NodeB + NodeC + Node0 + Node1 + Node2
-    Edge = EdgeA0 + EdgeB0 + EdgeC0 + Edge01 + Edge02
-    edges = NodeA->EdgeA0 + NodeB->EdgeB0 + NodeC->EdgeC0 +
-    Node0->Edge01 + Node0->Edge02
-    to = EdgeA0->Node0 + EdgeB0->Node0 + EdgeC0->Node0 +
-    Edge01->Node1 + Edge02->Node2
-
-    Agent = AgentA + AgentB + AgentC
-    start = AgentA->NodeA + AgentB->NodeB + AgentC->NodeC
-    dest = AgentA->Node0 + AgentB->Node1 + AgentC->Node2
-}
-
 // run { traces and solved } for {
-//     structure
+//     -- example instance
 // }
 
 /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -537,13 +528,11 @@ test expect {
     waitingExampleTest: { traces and solved } for waitingExample is sat
     allMovetest: {tracesMove} for allMove is sat
     tailGatetest: {tracesMove} for tailGate is sat
-    //collisiontest: {tracesMove} for collision is unsat --for old version of move
     meetUptest: {tracesMove} for meetUp is unsat
     allMovesolvetest: {traces and solved} for allMove is sat
     tailGatesolvetest: {traces and solved} for tailGate is sat
     collisionsolvetest: {traces and solved} for collision is sat
     meetUpsolvetest: {traces and solved} for meetUp is sat
-    //mexicanStandOffsolveTest: {traces and solved} for mexicanStandOff is unsat -- for old version of move
     mexicanStandOffwaitTest: {tracesWait} for mexicanStandOff is sat
 }
 
@@ -631,6 +620,7 @@ pred noCollision {
 
 // Safety Checking - No Collision has occurred during the process
 test expect {
+    tracesDoesNotCollide: { traces implies noCollision } is theorem
     solvedStateHasNoCollision: { traces and solved implies noCollision } is theorem
 }
 
@@ -649,17 +639,15 @@ test expect {
     solvedStateDoesNotJump: { traces and solved and jumping } is unsat
 }
 
-//deadlock: Can't move
-//livelock: Trapped in a cycle but still moving
-//If any agent ever doesn't reach its destination, that means that it encountered either a deadlock or livelock on its journey.
-//Therefore a predicate constraining that agents reach their destination is constraining that agents don't encounter a lock
+-- Given a set of Nodes to operate on, determine if the Agent can reach its destination by
+-- traversing only these Nodes.
 pred isNotConnected[nodeSet : Node, pos : Node, destination : Node] {
     let edgesAvailable = Edge - (nodeSet.edges + nodeSet.~to) | {
         destination not in pos + pos.^((Node->edgesAvailable & edges).(edgesAvailable->Node & to))
     }
 }
 
-
+-- Given an Agent, determine if they are "blocked" towards their target.
 pred isBlocked[agt : Agent] {
     let blockAgts = Agent - agt | {
         some blockAgts
@@ -667,6 +655,23 @@ pred isBlocked[agt : Agent] {
     }
 }
 
+-- Since isBlocked essentially wraps isNotConnected, both of them are tested here:
+example notBlockExample is { not isBlocked[Agent] } for {
+    Node = Node0 + Node1 + Node2
+    Edge = Edge01 + Edge12 + Edge02
+    edges = Node0->Edge01 + Node1->Edge12 + Node0->Edge02
+    to = Edge01->Node1 + Edge12->Node2 + Edge02->Node2
+
+    Agent = Agent0 + Agent1
+    start = Agent0->Node0 + Agent1->Node1
+    dest = Agent0->Node2 + Agent1->Node1
+}
+
+-- A MAPF Problem is deadlocked if all Agents cannot reach their destinations
+-- However, in traces, we already specified that their destination is reachable for the Agent
+-- so it is not that interesting to consider unreachability by Nodes and Edges.
+-- Instead, deadLocked here considers that each Agent cannot reach the target
+-- because all Paths to their respect target is blocked.
 pred deadLocked {
     traces
     -- The state can't be deadlocked if there's no agent
@@ -676,8 +681,11 @@ pred deadLocked {
     }}}
 }
 
+-- A MAPF Problem is livelocked if all Agents can reach their destinations but for some reason
+-- just decide not to.
 pred liveLocked {
     traces
+    not deadLocked
     eventually { always {
         some agt: Agent | agt.position != agt.dest
     }}
@@ -690,6 +698,9 @@ test expect {
     liveLockedUnsolvable: { liveLocked => not (traces and solved) } is theorem
     solvedDoesNotLock: {(traces and solved) => not (deadLocked or liveLocked)} is theorem
 }
+
+-- Properties referenced from:
+-- https://link.springer.com/chapter/10.1007/978-3-030-33274-7_6
 
 pred wellFormed {
     -- The graph is "well-formed" for MAPF if for all agent 1, 2,
@@ -705,12 +716,7 @@ pred wellFormed {
         }}
     }
 
-    -- does wellFormed => solution is always guaranteed
-}
-
-
-check {
-    { wellFormed } implies not deadLocked 
+    -- does wellFormed and traces => solution is sat is always guaranteed
 }
 
 //TODO::Create new more wellFormed specific instances/tests
@@ -718,103 +724,9 @@ test expect {
     wellFormedPositive: { wellFormed } for discreteMap is sat
     wellFormedNegative: { wellFormed } for waitingExample is unsat
     wfPathIncludeStartEnd: { wellFormed } for notCollide is unsat
-    -- wellFormed implies { traces and solved is sat } is theorem
-   --  { wellFormed and traces implies { some Solution } } for exactly one Solution is theorem
 }
 
--- separate out the concern
--- Create a run in forge core that has wellformed, and just check if those are sat in wellformed and traces
-
-/*
-//Statically checks if a mapf is solvable
-pred solvable[condition: set Agent] {
-    ...
-}
-*/
-
-//Traces but guarantees wellFormed
-pred wellFormedTraces {
-    traces
-    wellFormed
-}
-
-/*
-wellFormedTraces guarantees a solution, but how do you say that solved is sat?
-
-test expect {
-    wellFormedVacuityTest: { wellFormed } is sat
-    wellFormedTest: { wellFormed and traces implies solved } is theorem
-}
-*/
-
-/*-----------------------*\
-|     Path Procedures     |
-\*-----------------------*/
-
-/*
-// This is going to fail because the Agent has no incentives
-// to go the destination, so it can just wait forever at the same spot.
-check {
-    traces implies solved
-} for exactly one Agent
-*/
-
-test expect {
-   tracesSometimesSolve: { traces implies solved } is sat
-   tracesSometimesUnsolve: { not (traces implies solved) } is sat
-}
-
-//Method to naively force agents to take a path
-pred naivePathFinder {
-	traces
-	always {
-        all agt : Agent | {
-            not wait[agt]
-        }
-	}
-}
-
-// test expect {
-//     oneAgentAlwaysReachDest: {
-//         traces implies solved
-//     } for exactly one Agent is theorem
-// }
-
--- Best Guess: using until constrains the shape of the graph to also be able to accomplish until
---wellformed
-
-/// These two predicates are experimental. They currently basically say if a graph is solvable, then it is solvable. This makes wellformedness not really matter
-/// Also these predicates force all agents to always move, which just isn't proper
-
-pred nwfPathFinder {
-	traces
-	always {
-        all agt : Agent | {
-            move[agt] until agt.position = agt.dest
-        }
-	}
-}
-
---not well formed
-pred incentivePathFinder {
-	wellFormedTraces
-	always {
-        all agt : Agent | {
-            move[agt] until agt.position = agt.dest
-        }
-	}
-}
-
-// test expect {
-//     {{ nwfPathFinder => solved } <=> { incentivePathFinder => solved }} is theorem
-//     solutionExists: { nwfPathFinder implies solved } is theorem
-//     -- wellFormedSolution: { not (traces and solved) => not wellFormed  } is theorem
-// }
-
-// test expect {
-//     { nwfPathFinder implies wellFormed } is theorem
-// } 
-
+// Same Scenario as with Wellformed, explained below:
 pred slidable {
     -- The graph is "slidable" if for all node 1, 2, 3, there exists
     -- a path from 1 to 3 without passing through 2.
@@ -831,104 +743,66 @@ pred slidable {
     -- (probably not, try limiting number of agents)
 }
 
-
--- if it's moving the whole time and could reach destination
--- deadlock can't reach destination
--- livelock can reach destination, but agent waits forever and never goes there
-
-pred nsteps[num: Int] {
-    -- a trace can be completed in n time intervals.
+/*
+//Statically checks if a mapf is solvable
+pred solvable[condition: set Agent] {
+    ...
 }
-
--- https://link.springer.com/chapter/10.1007/978-3-030-33274-7_6
-
---junk pile
-
-/* 
---was going to be used to log how many steps it took to go from start to dest
-abstract sig Counter {
-      var count: one Int
-}
-
-one sig stepCount extends Counter {}
 */
 
 /*
-
---these two predicates overconstrain our graphs, we moreso just want dest to be reachable from start
-pred isConnected {
-    -- For Undirected Graphs
-
-    -- The Graph is connected if there exists some node 
-    -- such that all other nodes are reachable from it:
-    some reachNode : Node | Node = reachNode + reachNode.^(edges.to)
-}
-
-
-pred isUndirected {
-    all n : Node | all neighbor : n.edges.to | {
-        n in neighbor.edges.to
-    }
-}
-
-example icTest1 is { isConnected } for {
-    Node = Atom0 + Atom1 + Atom2 + Atom3 + Atom4
-    Edge = Edge01 + Edge12 + Edge13 + Edge34
-    edges = Atom0->Edge01 + Atom1->Edge12 + Atom1->Edge13 + Atom3->Edge34
-    to = Edge01->Atom1 + Edge12->Atom2 + Edge13->Atom3 + Edge34->Atom4
-}
-
-example icTest2 is { not isConnected } for {
-    Node = Atom0 + Atom1 + Atom2 + Atom3 + Atom4
-    Edge = Edge01 + Edge12 + Edge34
-    edges = Atom0->Edge01 + Atom1->Edge12 + Atom3->Edge34
-    to = Edge01->Atom1 + Edge12->Atom2 + Edge34->Atom4
-}
-
+wellFormed and traces guarantees a solution exist, but how do you say that in Forge?
+We are essentially trying to say that:
+    wellFormed and traces implies { solved is sat } is theorem
+    , which is impossible to check in Forge.
 */
 
-/*
-/*
+// We can't just check wellFormed and traces implies { solved }
+// Because the Agents can always just choose to wait forever.
+
 test expect {
-    ipfImpliesNotWaiting: { incentivePathFinder implies always { all agt : Agent | {
-            not wait[agt] until agt.position = agt.dest
-        }}} is theorem
+   tracesSometimesSolve: { traces implies solved } is sat
+   tracesSometimesUnsolve: { not (traces implies solved) } is sat
 }
-*/
 
-/*
-test expect {
-    ipfVacuity: { incentivePathFinder } is sat
-    nwfFindsPath: { nwfPathFinder implies solved } is theorem
-    ipfFindsPath: { incentivePathFinder implies solved } is theorem
-    -- ipfFindsPath2: { incentivePathFinder implies not solved } for exactly 2 Agent is sat
-    -- ipfFindsPath3: { not (incentivePathFinder implies solved) } for exactly 2 Agent is sat
-    -- ipfFindsPath4: { incentivePathFinder implies solved } for exactly 2 Agent is theorem
-    -- ipfFindsPath5: { incentivePathFinder implies not solved } for exactly 2 Agent is theorem
+// Proposed Workaround - Using some proposed Strategy to solve the problem
+/*-----------------------*\
+|     Path Procedures     |
+\*-----------------------*/
+
+/// These two predicates are experimental. They currently basically say if a graph is solvable, 
+/// then it is solvable. This makes wellformedness not really matter
+/// Also these predicates force all agents to always move, which just isn't proper
+
+--not well formed
+pred nwfPathFinder {
+	traces
+	always {
+        all agt : Agent | {
+            move[agt] until agt.position = agt.dest
+        }
+	}
+}
+
+pred incentivePathFinder {
+    wellFormed
+	traces
+	always {
+        all agt : Agent | {
+            move[agt] until agt.position = agt.dest
+        }
+	}
 }
 
 test expect {
-    ipfFindsPathHUHHHHH: { not (incentivePathFinder implies solved) } for exactly 2 Agent is theorem
-}
-*/
-
-inst undirected{
-    Node = Node0 + Node1 + Node2
-    Edge = Edge01 + Edge12 + Edge21
-    edges = Node0->Edge01 + Node1->Edge12 + Node2->Edge21
-    to = Edge01->Node1 + Edge12->Node2 + Edge21->Node1
-
-    Agent = Agent0
-    start = Agent0->Node0
-    dest = Agent0->Node2
+    solutionAlwaysExists: { nwfPathFinder implies solved } is theorem
+    wellFormedSolution: { incentivePathFinder implies solved  } is theorem
 }
 
-// run {} for undirected
+//  This definitely works, but the problem is that 
+// 'move[agt] until agt.position = agt.dest' actually forces all
+// graphs satisfying the pathfinders to be solvable because the until has to be true.
 
-/*
-run { 
-    traces
-    some Agent
-    all agt : Agent | agt.start != agt.dest
-}
-*/
+// This essentially makes the path-finding meaningless, so:
+// {{ nwfPathFinder => solved } <=> { incentivePathFinder => solved }} is theorem
+// actually holds

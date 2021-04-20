@@ -1,5 +1,5 @@
+// D3 Visualizer for Multiagent Pathfinding
 d3.select(svg).selectAll("*").remove();
-
 
 // helper functions to assign different agents different colors
 function hashCode(str) { // java String#hashCode

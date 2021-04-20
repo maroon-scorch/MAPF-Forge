@@ -1,5 +1,7 @@
 # cs0170-spring-2021-multiagent-pathfinding
 ## Multi-Agent Pathfinding:
+
+## Design Questions:
 - What tradeoffs did you make in choosing your representation? What else did you try that didn’t work as well?
     - The biggest decision we made was to have agents all move in parallel instead of one at a time. This complicated our node collision predicate, but allows our model to better represent a wider range of topics
     - Another smaller decision was to have sigs for the edges, instead of just relations on nodes. This allows for edges to contain information that affects the pathfinding much more easily. This allows the model to be easily changed to model a variety of problems

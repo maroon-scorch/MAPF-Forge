@@ -8,8 +8,9 @@ Solving a pathfinding problem is rather trivial when number of agent is only one
 <br /><br />
 In our project, we modeled the process of Multiagent Pathfinding in Forge and <b>implemented a MAPF Solver</b> that produces a solution (if it exists) to the MAPF problem with the shortest time steps. In addition, we have also explored some properties that will be verified in our Forge file.
 ## The Solver:
-The Solver applies a technique known as "Counter-Example Guided Inductive Synthesis" (2).
+The Solver applies a technique known as "Counter-Example Guided Inductive Synthesis" (2). It first takes in a text file with specific input specifications and converts it to a Forge Instance that our Forge file can operate on. Then in each iteration of a for loop, starting with n = 1, the solver sets the max trace length to n and checks if the instance is satisfiable. If it is, then the solver will exit the loop and return the answer. The reason why the answer will be the one with the optimal timestep is because all instances of timestep below the current timestep has yielded unsat.
 
+Note that this solver is incomplete, meaning it will only terminate on UNSAT instances when Forge exceeds its own capacity in calculations and shuts down.
 ## Design Questions:
 - What tradeoffs did you make in choosing your representation? What else did you try that didn’t work as well?
     - The biggest decision we made was to have agents all move in parallel instead of one at a time. This complicated our node collision predicate, but allows our model to better represent a wider range of topics
@@ -79,5 +80,5 @@ All Nodes with blank lines should also be the last Nodes in the file specified. 
 ## Important Notice:
 Thomas, who offered to help us figure out integrating our Forge files to forge/core, aided us in letting us write mapf_solver.rkt while providing support as a TA. The I/O parsing of text files (parse-file.rkt) to forge instances was directly provided by Thomas who believed that racket macro was too cumbersome and irrelevant to what we are doing to make us learn. Thank you Thomas!
 ## References:
-[( 1. )](https://arxiv.org/ftp/arxiv/papers/1610/1610.05452.pdf) Makespan Optimal Solving of Cooperative Path-Finding via Reductions to Propositional Satisfiability by Pavel Surynek.
-( 2. ) Email Exchange with Professor Tim Nelson :)
+- [( 1. )](https://arxiv.org/ftp/arxiv/papers/1610/1610.05452.pdf) Makespan Optimal Solving of Cooperative Path-Finding via Reductions to Propositional Satisfiability by Pavel Surynek.
+- ( 2. ) Email Exchange with Professor Tim Nelson :)

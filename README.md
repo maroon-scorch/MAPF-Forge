@@ -1,5 +1,7 @@
 # cs0170-spring-2021-multiagent-pathfinding
 ## Multi-Agent Pathfinding:
+
+## Design Questions:
 - What tradeoffs did you make in choosing your representation? What else did you try that didn’t work as well?
     - The biggest decision we made was to have agents all move in parallel instead of one at a time. This complicated our node collision predicate, but allows our model to better represent a wider range of topics
     - Another smaller decision was to have sigs for the edges, instead of just relations on nodes. This allows for edges to contain information that affects the pathfinding much more easily. This allows the model to be easily changed to model a variety of problems
@@ -10,3 +12,8 @@
 - How should we understand an instance of your model and what your custom visualization shows?
     - Instances are a collection of Nodes, Edges, and Agents. Agents point to the nodes they are currently "on" (indicated by their position relation). The sterling graph is pretty unintelligible, so we created a much more readable graph in our visualization. Each agents hasa color, and the node that the agent is on is colored in that color. Each agents destination node is outlined in the agent's color. 
 
+## How to Run Solver:
+To run the solver:
+```
+racket mapf_solver.rkt <path_to_file>
+```

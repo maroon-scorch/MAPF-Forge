@@ -1,0 +1,11 @@
+4 2
+Node0 Node3 Node1
+      1 2
+Node1 Node2
+      1
+Node2 Node1
+      1
+Node3 Node1
+      1
+AgentA Node0 Node3
+AgentB Node1 Node2

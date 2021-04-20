@@ -1,4 +1,5 @@
 # cs0170-spring-2021-multiagent-pathfinding
+[comment]: <> (This is a mark down file, and is intended to be read that way!)
 ## Multi-Agent Pathfinding (MAPF):
 ## Introduction:
 Multi-Agent Pathfinding is a novel concept generated during the cusp of deep reinforcement learning. While having multiple agents navigating on the same graph is novel enough in its potentials for parallelization, the true novelty of Multi-agent Pathfinding comes in its key restriction - that agents following the paths may not collide with one another. With that seemingly tiny change, Multi-Agent Pathfinding has arisen with major applications in topics such as factory robotics, simulated interactive modelings in video games, and more, etc.

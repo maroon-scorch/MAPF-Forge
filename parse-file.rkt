@@ -34,6 +34,7 @@
   (syntax-case stx ()
     [(to-inst filename)
      (let ([data (get-data (syntax->datum #'filename))])
+     ; ([data (get-data (syntax->datum #'filename))])
         (define body
             ; Node = Node1 + Node2 + Node3 + Node4
             (list

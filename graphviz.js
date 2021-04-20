@@ -1,6 +1,7 @@
 d3.select(svg).selectAll("*").remove();
 
 
+// helper functions to assign different agents different colors
 function hashCode(str) { // java String#hashCode
     var hash = 0;
     for (var i = 0; i < str.length; i++) {
@@ -21,14 +22,14 @@ function agentToColor(i, d){
   return "#" + intToRGB(101 * (hashCode(i) + d))
 }
 
-
+// create the intial svg
 svg = d3.select(svg)
     .append("g")
     .attr("width", 100)
     .attr("height", 100);
 
   
-      //create dummy data
+    //create dummy data
     const dataset =  {
       nodes: [
 
@@ -38,6 +39,7 @@ svg = d3.select(svg)
       ]
     };
 
+    // Get all the data out of forge
     var edges = Edge.tuples().map(f => f.toString());
     var edgeTo = Edge.to.tuples().map(f => f.toString());
     var nodes = Node.tuples().map(f => f.toString());
@@ -49,16 +51,24 @@ svg = d3.select(svg)
     var ending = Agent.dest.tuples().map(f => f.toString());
 
 
-//     for (var i = 0; i < agents.length; i++){    
-//       svg.append("text")
-//         .attr("x", 220)
-//         .attr("y", 130 + i*30)
-//         .text(agents[i] + " | start: " + starting[i] + " end: " + ending[i])
-//         .style("font-size", "15px")
-//         .attr("alignment-baseline","middle")
+    // create the legend out of the agent names, starts, and ddestinations
+    for (var i = 0; i < agents.length; i++){    
+      svg.append("text")
+        .attr("x", 120)
+        .attr("y", 130 + i*30)
+        .text(agents[i] + ": " + starting[i] + " 🠚 " + ending[i])
+        .style("font-size", "20px")
+        .attr("alignment-baseline","middle")
+      svg.append("circle")
+        .attr("cx", 100)
+        .attr("cy",129 + i*30)
+        .attr("r", 8)
+        .style("fill", agentToColor(agents[i], i*298))
 
-//     }
+    }
 
+    // extract the node to edge information, and store it in  
+    // a map of form nodeToEdgeMap = [nodename => [edge1, edge2, ...]]
     var nodeToEdgeMap = new Map();
     var atoms = Node.atoms(true);
     
@@ -66,12 +76,10 @@ svg = d3.select(svg)
       const outEdge = node.edges.tuples().map(tuple => tuple.atoms());
       var nodeEdges = []
       outEdge.map((info) => {
-        
-        console.log(info)
+
         
         let edgeName = info[0].toString()
         nodeEdges.push(edgeName)
-        //console.log(node)
 
         
         nodeToEdgeMap.set(node.tuples().map(f=>f.toString())[0], nodeEdges)
@@ -79,6 +87,9 @@ svg = d3.select(svg)
       });
       
     });
+
+    // extract the edge to node information, and store it in  
+    // a map of form edgeToNode = [edgename => nodename]
 
     var edgeToNodeMap = new Map();
     var destAtoms = Edge.atoms(true);
@@ -95,22 +106,14 @@ svg = d3.select(svg)
     });
 
     
-      
-      
-      console.log(nodeToEdgeMap)
-      console.log(edgeToNodeMap)
-
+    // go through the map and add the edges to the graph dataset
     for (let node of nodeToEdgeMap.keys()) {
-        console.log(node)
         for (let edge of nodeToEdgeMap.get(node)){
           dataset.links.push({source: node, target: edgeToNodeMap.get(edge)} )  
         }
     }
 
-//     console.log(dataset)
-
-
-
+    // iterate through the nodes and add them to the graph dataset with colors, agents, and outlines assigned
     for (var i = 0; i < nodes.length; i++) {
       color = "lightgrey"
       agent = ""
@@ -130,21 +133,19 @@ svg = d3.select(svg)
 
     }
 
-    
-    console.log("dataset is ...",dataset);
-
-   svg.append("svg:defs").selectAll("marker")
-    .data(["end"])      // Different link/path types can be defined here
-  .enter().append("svg:marker")    // This section adds in the arrows
-    .attr("id", String)
+   // create arrow markers for the links
+   svg.append("defs").append("marker")
+    .attr("id", "id")
     .attr("viewBox", "0 -5 10 10")
-    .attr("refX", 15)
-    .attr("refY", -1.5)
-    .attr("markerWidth", 2)
-    .attr("markerHeight", 2)
+    .attr("refX", 30)
+    .attr("markerWidth", 8)
+    .attr("markerHeight", 8)
     .attr("orient", "auto")
-  .append("svg:path")
-    .attr("d", "M0,-5L10,0L0,5");
+    .append("svg:path")
+    .attr("d", "M0,-5L10,0L0,5")
+    .attr('fill', 'slategrey')
+    .style('stroke','slategrey');
+
 
      // Initialize the links
     const link = svg.append("g")
@@ -153,9 +154,9 @@ svg = d3.select(svg)
         .data(dataset.links)
         .enter().append("line")
         .attr("fill", "black")
-        .attr("stroke", "black")
+        .attr("stroke", "slategrey")
         .attr('stroke-width', 2)
-        .attr("marker-end", "url(#end)");
+        .attr("marker-end", 'url(#id)');
 
     // Initialize the nodes
     const node = svg.append("g")
@@ -173,6 +174,8 @@ svg = d3.select(svg)
             .on("end", dragended)     //end - after an active pointer becomes inactive (on mouseup, touchend or touchcancel).
          );
 
+
+
     // Text to nodes
     const text = svg.append("g")
         .attr("class", "text")
@@ -184,7 +187,12 @@ svg = d3.select(svg)
         .attr("dx", "0.3em")
         .style("text-anchor", "middle")
         .style("font-size", "17px")
-        .text(d => d.id);
+        .text(d => d.id)
+        .call(d3.drag()  //sets the event listener for the specified typenames and returns the drag behavior.
+            .on("start", dragstarted) //start - after a new pointer becomes active (on mousedown or touchstart).
+            .on("drag", dragged)      //drag - after an active pointer moves (on mousemove or touchmove).
+            .on("end", dragended)     //end - after an active pointer becomes inactive (on mouseup, touchend or touchcancel).
+         );
     const text2 = text.append("text")
         .attr("fill", "block")
         .attr("dx", "-4em")
@@ -194,15 +202,17 @@ svg = d3.select(svg)
 
 
 
-              
+    // boot up the simulation
     var simulation = d3.forceSimulation(dataset.nodes)
-    .force('charge', d3.forceManyBody())
+    .force('charge', d3.forceManyBody().strength(-700))
     .force('center', d3.forceCenter(width / 2, height / 2))
     .force("link", d3.forceLink(dataset.links).distance(300).id(function(d){return d.id}))
     .on('tick', ticked);
 
-    simulation.tick(120);
+    // tick it forcibly 120 times so it doesnt jump as much on rerender
+    simulation.tick(190);
 
+    // add the x and y attributes to the nodes
     node.attr("cx", function(d) { return d.x; })
       .attr("cy", function(d) { return d.y; })
     ticked()
@@ -210,21 +220,6 @@ svg = d3.select(svg)
     //Listen for tick events to render the nodes as they update in your Canvas or SVG.
     simulation.force('link').links(link);
     simulation.nodes(dataset.nodes).on("tick", ticked);
-//         .nodes(dataset.nodes)//sets the simulation’s nodes to the specified array of objects, initializing their positions and velocities, and then re-initializes any bound forces;
-//         .on("tick", ticked);//use simulation.on to listen for tick events as the simulation runs.
-        // After this, Each node must be an object. The following properties are assigned by the simulation:
-        // index - the node’s zero-based index into nodes
-        // x - the node’s current x-position
-        // y - the node’s current y-position
-        // vx - the node’s current x-velocity
-        // vy - the node’s current y-velocity
-
-//     simulation
-//         .links(dataset.links);//sets the array of links associated with this force, recomputes the distance and strength parameters for each link, and returns this force.
-        // After this, Each link is an object with the following properties:
-        // source - the link’s source node; 
-        // target - the link’s target node; 
-        // index - the zero-based index into links, assigned by this method
 
 
     // This function is run at each iteration of the force algorithm, updating the nodes position (the nodes data array is directly manipulated).
@@ -253,7 +248,6 @@ svg = d3.select(svg)
 
     //When the drag gesture starts, the targeted node is fixed to the pointer
   function dragged(event, d) {
-//     console.log(d.x)
     d.fx = event.x;
     d.fy = event.y;
   }
@@ -263,8 +257,6 @@ svg = d3.select(svg)
       if (!event.active) simulation.alphaTarget(0);
       d.fx = null;
       d.fy = null;
-      
-      console.log("dataset after dragged is ...",dataset);
     }
 
 

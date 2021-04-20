@@ -7,26 +7,27 @@
 ; (require "instances.rkt")
 ; (option 'max-tracelength n)
 (define args (current-command-line-arguments))
-(unless (not (= 1 (vector-length args)))
-    raise("Please pass in one argument"))
+(print args)
+;;; (unless (not (= 1 (vector-length args)))
+;;;     raise("Please pass in one argument"))
+(define filepath (vector-ref args 0))
+(print 'filepath)
 
-(define filepath (~v (vector-ref args 0)))
-(define path "input.txt")
+(define problem (to-inst filepath))
 
 (define answers (for/last ([n (in-naturals 1)]) 
     (set-option! 'max_tracelength n)
-    (define my-inst (to-inst "test.txt"))
     (run solvability
      #:preds [traces solved]
-     #:bounds my-inst
+     #:bounds problem
     )
     #:final (forge:is-sat? solvability)
     solvability
 ))
 
-;; (< (sing (constant 5)) (sing (constant 6)))
-;; myFunc
-;; (myFunc (sing (int 5)))
+;;; ;; (< (sing (constant 5)) (sing (constant 6)))
+;;; ;; myFunc
+;;; ;; (myFunc (sing (int 5)))
 
 
 

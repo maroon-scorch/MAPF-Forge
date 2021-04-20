@@ -12,3 +12,8 @@
 - How should we understand an instance of your model and what your custom visualization shows?
     - Instances are a collection of Nodes, Edges, and Agents. Agents point to the nodes they are currently "on" (indicated by their position relation). The sterling graph is pretty unintelligible, so we created a much more readable graph in our visualization. Each agents hasa color, and the node that the agent is on is colored in that color. Each agents destination node is outlined in the agent's color. 
 
+## How to Run Solver:
+To run the solver:
+```
+racket mapf_solver.rkt <path_to_file>
+```

@@ -1,4 +1,4 @@
-# cs0170-spring-2021-multiagent-pathfinding
+# cs1710-spring-2021-multiagent-pathfinding
 [comment]: <> (This is a mark down file, and is intended to be read that way!)
 ## Multi-Agent Pathfinding (MAPF):
 ## Introduction:

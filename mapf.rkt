@@ -23,9 +23,7 @@ by which the Agent would be operating on
 --------------------------------------
 */
 sig Node {
-    -- edges: set Node->Int
     edges: set Edge
-    -- perhaps have a set of colors->edges to support colored edges for a colored traversal 
 }
 
 /*
@@ -64,7 +62,7 @@ go from its start to its destination.
 sig Agent {
     var position: one Node,
     start: one Node,
-    dest: one Node, -- For Traveling Salesman, Consider Changing this into set Node?
+    dest: one Node,
     var stops: set Node
 }
 
@@ -306,7 +304,7 @@ pred traces {
     preConditions
 	init
 	-- Something is always happening
-    always {all agt: Agent | (move[agt] or wait[agt]) and (agt.position = agt.dest => wait[agt])}
+    always {all agt: Agent | (move[agt] or wait[agt]) and (agt.position = agt.dest => wait[agt]) }
 }
 
 pred tracesMove {
